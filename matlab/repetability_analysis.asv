@@ -330,19 +330,9 @@ if export_fig
 end
 
 %% Figure 4.1
-fig = figure(41); clf; hold on; grid on
-    
-i_data = T_f.X_test_inverse;
-i_metric = load('../metrics/forward_2023_09_18-19_38_06_5_883mm.mat');
+fig = figure(34); clf; hold on;
 
-% figure formatting
-set(gcf,'color','w');
-set(fig, 'Units', 'inches');
-width = 1.25;
-height = 1.25;
-set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
-
+i_data = T_f.X_test_ivnerse;
 
 for i = 1:size(i_data,1)
-    plot3(i_data(i,:,1),i_data(i,:,3),i_data(i,:,2))
-end
+    plot3(i_data(1,:,1),i_data(1,:,3),i_data(1,:,1))
