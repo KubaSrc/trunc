@@ -244,9 +244,13 @@ set(fig, 'Units', 'inches');
 width = 1.25;
 height = 1.25;
 set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
-view([45,37.5])
-xlim([-125,125])
-ylim([-125,125])
+view([45,45])
+xlim([-200,200])
+ylim([-200,200])
+xticks([-200,0,200])
+yticks([-200,0,200])
+xtickangle(0)
+ytickangle(0)
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
@@ -296,9 +300,13 @@ set(fig, 'Units', 'inches');
 width = 1.25;
 height = 1.25;
 set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
-view([45,37.5])
-xlim([-125,125])
-ylim([-125,125])
+view([45,45])
+xlim([-200,200])
+ylim([-200,200])
+xticks([-200,0,200])
+yticks([-200,0,200])
+xtickangle(0)
+ytickangle(0)
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
@@ -333,7 +341,51 @@ end
 fig = figure(41); clf; hold on; grid on
     
 i_data = T_f.X_test_inverse;
-i_metric = load('../metrics/forward_2023_09_18-19_38_06_5_883mm.mat');
+i_metric = load('../metrics/inverse_2023_09_19-01_01_05_4_070pwm.mat');
+
+% figure formatting
+set(gcf,'color','w');
+set(fig, 'Units', 'inches');
+width = 1.25;
+height = 1.25;
+set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
+view([45,45])
+xlim([-200,200])
+ylim([-200,200])
+xticks([-200,0,200])
+yticks([-200,0,200])
+xtickangle(0)
+ytickangle(0)
+
+cmap = colormap(gca,flipud(brewermap([],'Spectral')));
+clim([min(i_metric.test_error),max(i_metric.test_error)]); % set the colormap limits
+cb = colorbar('northoutside','LineWidth',1.5,'FontSize',ax_font_size);
+clim([min(i_metric.test_error),max(i_metric.test_error)]);
+
+norm_error = (i_metric.test_error - min(i_metric.test_error)) / ...
+             (max(i_metric.test_error) - min(i_metric.test_error));
+color_indices = round(1 + norm_error * (size(cmap,1)-1));
+
+for i = 1:length(cmap)
+    s=scatter3(i_data(i,:,1)-x_h,i_data(i,:,3)-z_h,i_data(i,:,2)-y_h,[],cmap(color_indices(i),:),'filled','LineWidth',1.25,'Marker','o','MarkerEdgeColor',[0,0,0]);
+    plot3(i_data(i,:,1)-x_h,i_data(i,:,3)-z_h,i_data(i,:,2)-y_h,'Color',[0, 0, 0, 0.5],'LineWidth',2)
+    % set(s, 'MarkerEdgeAlpha', 0.5, 'MarkerFaceAlpha', 0.5)
+    s.SizeData = 100;   
+end
+
+% axis formatting
+set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
+
+% export fig
+if export_fig
+    exportgraphics(gcf,'../figures/inverse/error.png','Resolution',300*fig_s)
+end
+
+%% Figure 4.2
+fig = figure(42); clf; hold on;
+
+histogram(i_metric.test_error,'facecolor',map(1,:),'facealpha',.2,'EdgeColor','none')
+histogram(i_metric.test_error,'EdgeColor',map(1,:),'linewidth',3,'DisplayStyle','stairs')
 
 % figure formatting
 set(gcf,'color','w');
@@ -342,7 +394,15 @@ width = 1.25;
 height = 1.25;
 set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
+% axis formatting
+set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
 
-for i = 1:size(i_data,1)
-    plot3(i_data(i,:,1),i_data(i,:,3),i_data(i,:,2))
+% export fig
+if export_fig
+    exportgraphics(gcf,'../figures/inverse/error_hist.png','Resolution',300*fig_s)
 end
+
+%% Figure 4.3
+fig = figure(43); clf; hold on;
+
+plot(T_f.)
