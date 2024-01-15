@@ -405,4 +405,6 @@ end
 %% Figure 4.3
 fig = figure(43); clf; hold on;
 
-plot(T_f.)
+T_i = load('../input_regression.mat');
+
+plot(T_i.output)

@@ -5,12 +5,15 @@ warning('off','all')
 
 % Fonts
 fig_w = 300; fig_h = 300; fig_s = 3;
-ax_font_size = 7*fig_s;
+ax_font_size = 9*fig_s;
 
 % Figures
 set(0,'DefaultTextFontname', 'CMU Sans Serif' )
 set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
 map = brewermap(9,'Set1');
+
+% save path
+export_fig = true;
 
 %%
 
@@ -20,7 +23,7 @@ set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1);
 set(gcf,'color','w');
 set(fig, 'Units', 'inches');
 width = 1.65;
-height = 2.25;
+height = 2.5;
 set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 
@@ -58,13 +61,21 @@ del{it} = outp(:)-inp(:);
 di(it) = locs2(end)-locs(end);
 wv(it) = locs2(end)-locs2(end-1);   
 percent = di(it)/wv(it);
-axis([0 .7 -180 180])
-title(strcat("\theta = ",names{it}),'FontSize',ax_font_size)
-yticklabels({'-100',' ','100'})
+xlim([0, 0.7])
+ylim([-180,180])
+yticks([-100,0,100])
+title(' ',FontSize=ax_font_size)
+yticklabels({'-100','','100'})
+
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1);
 if it ~= 5
     set(gca,'XTickLabel',[]);
 end
+end
+
+% export fig
+if export_fig
+    exportgraphics(gcf,'../figures/cv/theta.png','Resolution',300*fig_s)
 end
 
 %%
@@ -75,7 +86,7 @@ set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1);
 set(gcf,'color','w');
 set(fig, 'Units', 'inches');
 width = 1.65;
-height = 2.25;
+height = 2.5;
 set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 t = tiledlayout(5,1);
@@ -102,16 +113,26 @@ nexttile;
 plot(t1(:)-t1(1), inp(:),'color','k', 'linewidth',3); hold on;
 plot(t1(:)-t1(1), outp(:),'linestyle','--','color',map(1,:),'linewidth', 3); 
 
-axis([-inf inf -180 180])
 
-title(strcat("\DeltaL = ",names2{it}))
-yticklabels({'-100',' ','100'})
-xlim([0,1.3])
+title(' ',FontSize=ax_font_size)
+
+xlim([0, 1.3])
+ylim([-180,180])
+yticks([-100,0,100])
+yticklabels({'-100','','100'})
+
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1);
 if it ~= 5
     set(gca,'XTickLabel',[]);
 end
 end 
+
+% export fig
+if export_fig
+    exportgraphics(gcf,'../figures/cv/length.png','Resolution',300*fig_s)
+end
+
+%%
 %%
 function [t1, inp, t2, outp] = readdata(loc)
 

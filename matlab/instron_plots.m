@@ -7,8 +7,8 @@ warning('off','all')
 fig_w = 300; fig_h = 300; fig_s = 3;
 
 % fonts
-ax_font_size = 7*fig_s;
-legend_font_size = 6*fig_s;
+ax_font_size = 9*fig_s;
+legend_font_size = 9*fig_s;
 set(0,'DefaultTextFontname', 'CMU Sans Serif' )
 set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
 
@@ -40,25 +40,26 @@ T_tst_p = readtable("./Instron Data/truss-steel-torque_pole.csv");
 
 fig = figure(1); clf; hold on;
 
-plot(T_flex.Strain_0*10,T_flex.Stifness_0,'LineWidth',2,'LineStyle','-.','color',"#F5A5A7")
+plot(T_flex.Strain_0*10,T_flex.Stifness_0,'LineWidth',3,'LineStyle',':','color',"#F5A5A7")
 errorbar(T_flex.Strain_0*10,T_flex.Stifness_0,T_flex.Stifness_1-T_flex.Stifness_0,T_flex.Stifness_2-T_flex.Stifness_0,'LineWidth',3,'LineStyle','none','color',map(1,:))
 
 
 % figure formatting
 set(gcf,'color','w');
 set(fig, 'Units', 'inches');
-width = 2.25;
-height = 1.5;
+width = 2.5;
+height = 1.75;
 set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
 ylim([0,65])
+xlim([-2.5,22])
 
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'../Figures/Instron/flex-shaft.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../figures/instron/flex-shaft.png','Resolution',300*fig_s)
 end
 
 %% Simple printed force
@@ -76,11 +77,13 @@ set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
-xlim([0,max(T_spf.Displacment_0)*1.001])
+xticks([0,2,4,6,8])
+yticks([0,2.5,5])
+xlim([0,8])
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'../Figures/Instron/spf.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../figures/instron/spf.png','Resolution',300*fig_s)
 end
 
 %% Simple printed torque
@@ -99,7 +102,10 @@ set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
-xlim([0,max(T_spt_a.Rotation_0)*1.001])
+xticks([0,0.15,.3])
+yticks([0,25,50])
+xlim([0,.35])
+
 
 % legend formatting
 lg = legend('interpreter','latex','Location','northwest');
@@ -109,7 +115,7 @@ lg.ItemTokenSize(1) = 20;
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'../Figures/Instron/spt.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../figures/instron/spt.png','Resolution',300*fig_s)
 end
 
 
@@ -128,11 +134,12 @@ set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
-xlim([0,max(T_ssf.Displacment_0)*1.001])
+xticks([0,5,10,15])
+xlim([0,17.5])
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'../Figures/Instron/ssf.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../figures/instron/ssf.png','Resolution',300*fig_s)
 end
 
 
@@ -152,7 +159,10 @@ set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
-xlim([0,max(T_sst_a.Rotation_0)*1.001])
+xticks([0,0.15,.3])
+yticks([0,25,50])
+xlim([0,.35])
+
 
 % legend formatting
 lg = legend('interpreter','latex','Location','northwest');
@@ -162,7 +172,7 @@ lg.ItemTokenSize(1) = 20;
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'../Figures/Instron/sst.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../figures/instron/sst.png','Resolution',300*fig_s)
 end
 
 %% Truss steel force
@@ -180,11 +190,14 @@ set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
-xlim([0,max(T_tsf.Displacment_0)*1.001])
+xticks([0,5,10,15])
+yticks([0,5,10])
+xlim([0,17])
+
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'../Figures/Instron/tsf.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../figures/instron/tsf.png','Resolution',300*fig_s)
 end
 
 %% Truss steel torque
@@ -203,7 +216,9 @@ set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
-xlim([0,max(T_tst_a.Rotation_0)*1.001])
+xticks([0,0.15,.3])
+yticks([0,50,100])
+xlim([0,.35])
 
 % legend formatting
 lg = legend('interpreter','latex','Location','northwest');
@@ -213,5 +228,5 @@ lg.ItemTokenSize(1) = 20;
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'../Figures/Instron/tst.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../figures/instron/tst.png','Resolution',300*fig_s)
 end
