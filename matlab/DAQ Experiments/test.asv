@@ -14,14 +14,13 @@ ch3.TerminalConfig = "SingleEnded";
 ch4.TerminalConfig = "SingleEnded";
 
 %%
-figure(1); clf; hold on
 data = read(dq, seconds(10), "OutputFormat", "Matrix");
 t = 0:(1/10000):(10-(1/10000));
 t = t';
-plot(t, data(:,1)); hold on;
-plot(t, data(:,2)); hold on;
-plot(t, data(:,3)); hold on;
-plot(t, data(:,4)); hold on;
+scatter(t, data(:,1)); hold on;
+scatter(t, data(:,2)); hold on;
+scatter(t, data(:,3)); hold on;
+scatter(t, data(:,4)); hold on;
 legend('A','B','C','D');
 data(data<2.5) = 0;
 data(data>2.5) = 1;

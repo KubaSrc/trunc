@@ -24,16 +24,16 @@ export_fig = true;
 T_flex = readtable("./Instron Data/flex-shaft.csv");
 
 T_spf = readtable("./Instron Data/simple-printed-force.csv");
-T_spt_a = readtable("./Instron Data/simple-printed-torque_azimuth.csv");
-T_spt_p = readtable("./Instron Data/simple-printed-torque_pole.csv");
+T_spt_a = readtable("./Instron Data/simple-printed-bending.csv");
+T_spt_p = readtable("./Instron Data/simple-printed-torsion.csv");
 
 T_ssf = readtable("./Instron Data/simple-steel-force.csv");
-T_sst_a = readtable("./Instron Data/simple-steel-torque_azimuth.csv");
-T_sst_p = readtable("./Instron Data/simple-steel-torque_pole.csv");
+T_sst_a = readtable("./Instron Data/simple-steel-bending.csv");
+T_sst_p = readtable("./Instron Data/simple-steel-torsion.csv");
 
-T_tsf = readtable("./Instron Data/truss-steel-force.csv");
-T_tst_a = readtable("./Instron Data/truss-steel-torque_azimuth.csv");
-T_tst_p = readtable("./Instron Data/truss-steel-torque_pole.csv");
+T_tsf = readtable("./Instron Data/complex-steel-force.csv");
+T_tst_a = readtable("./Instron Data/complex-steel-bending.csv");
+T_tst_p = readtable("./Instron Data/complex-steel-torsion.csv");
 
 
 %% Flex shaft plot
