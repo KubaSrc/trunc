@@ -3,7 +3,7 @@ clear all; clc; close all;
 % Connect to device
 dq = daq("ni");
 dq.Rate = 10000;
-t_read = 10;
+t_read = 20;
 
 % Define output channels
 ch1 = addinput(dq, "Dev1", "ai0", "Voltage");
@@ -15,7 +15,7 @@ ch2.TerminalConfig = "SingleEnded";
 ch3.TerminalConfig = "SingleEnded";
 ch4.TerminalConfig = "SingleEnded";
 
-save_data = false;
+save_data = true;
 
 %% Collect data
 
@@ -44,20 +44,9 @@ if save_data
     save('theta_12.mat','input_pos','output_pos', 't');
 end
 
-%% Plot data
+%% PLotting function
+data = load('theta_12.mat','input_pos','output_pos', 't');
 
-data = load('theta_12.mat');
-t = data.t;
-intput = data.input_pos;
-output = data.output_pos;
-
-input = input(1:10:end);
-output = input(1:10:end);
-
-n=100;
-d_input = diff(intput,n);
-figure(1); clf;
-plot(t(1:end-n),d_input);
 %% Function for decoding signal from encoders
 function pos_array = decodeQuadrature(signalA, signalB)
     pos_array = zeros(size(signalA));
