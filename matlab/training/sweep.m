@@ -13,36 +13,28 @@ map = brewermap(9,'Set1');
 
 %% Generate random relative motor positions
 
-% Define maximum tilt and length changes
-theta_max = deg2rad(15);
-phi_max = deg2rad(15);
-l_max = 20;
+% Maximum cable deltas and maximum length change
+d_max = 40;
+L_max = 40;
 
 % Random sample size
 rng(8);
 n = 15000;
 
-% End rotation 
-de_theta = normrnd(0,theta_max/3,[n,1]);
-de_phi= normrnd(0,phi_max/3,[n,1]);
+% End effector
+d_end = -sqrt(normrnd(0,d_max/3,[n,3]).^2);
 
-% Top middle rotation
-dtm_theta = normrnd(0,theta_max/3,[n,1]);
-dtm_phi = normrnd(0,phi_max/3,[n,1]);
+% Body
+d_body = -sqrt(normrnd(0,d_max/3,[n,3]).^2);
 
-% Length change
-dl = normrnd(0,l_max/3,[n,1]);
+% Length
+dL = -sqrt(normrnd(0,L_max/3,[n,1]).^2);
 
-motor_deltas = [de_theta,de_phi,dtm_theta,dtm_phi,dl];
-T = array2table(motor_deltas);
-T.Properties.VariableNames(1:5) = {'de_theta','de_phi','dtm_theta','dtm_phi','dl'};
-writetable(T,['motor_delta_sweep.csv'])
-
+motor_deltas = [d_end, d_body, dL];
 %% Calculate absolute motor position
 
-md = T;
+motor_pos = delta2pos(d_end,d_body,dL);
 
-motor_pos = delta2pos(md);
 motor_deltas_fast = zeros(size(motor_deltas));
 
 save("./motor_pos_repeat.mat","motor_pos")

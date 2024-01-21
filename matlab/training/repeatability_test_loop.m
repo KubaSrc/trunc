@@ -1,4 +1,5 @@
 clear all; close all; clc
+addpath('./util/NatNet_SDK_4.1/NatNetSDK/Samples/Matlab');
 
 % Test variables
 motor_testing = 1;
@@ -11,14 +12,14 @@ pause_length = 1.25;
 % Load in home state
 home_comp = load("home_comp.mat").home_comp;
 
-
 % Calculate positions from motor deltas
-md = readtable('md_repeat_fast.csv');
 motor_pos = load("motor_pos_repeat_fast.mat").motor_pos_repeat_fast;
+md = readtable("./md_repeat_fast.csv");
+motor_pos(1,:) = home_comp;
 
 % Connect to servos and initialize the arm
 if ~exist('port','var')
-    port = serialport("COM6", 9600);
+    port = serialport("COM4", 9600);
     channels = 0:11;
     pos = zeros(12,1);
     global position;
@@ -29,16 +30,12 @@ if ~exist('port','var')
     end
 end
 
-% Connect to NatNet
-pause(1);
-
+% Connect to motive
 if ~exist('nnc','var')
     nnc = connect_to_natnet();
 end
 
-pause(8);
-
-ee = nnc.getFrame().RigidBody(1); %End Effector
+ee = nnc.getFrame().RigidBodies(1) %End Effector
 
 xe = {ee.x, ee.y, ee.z};
 qe = {ee.qx, ee.qy, ee.qz, ee.qw};
@@ -47,15 +44,15 @@ qe = {ee.qx, ee.qy, ee.qz, ee.qw};
 
 % Initialize output
 init_frame = nnc.getFrame();
-output = cell(num_points*repeat + 1, 15); % + 3 + 4 + marker_count * 3);
-output(1,:) = {'date and time','Repeat num','Test num','dtm_13','dtm_24','de_13','de_24','dl',...
+output = cell(num_points*repeat + 1, 17); % + 3 + 4 + marker_count * 3);
+output(1,:) = {'date and time','Repeat num','Test num','d0_end','d1_end','d2_end','d0_body','d1_body','d2_body','dL',...
     'x_end_avg','y_end_avg','z_end_avg','qx_end_avg','qy_end_avg','qz_end_avg','qw_end_avg'};
 
 fprintf('Starting test\n');
 fprintf('Total %d samples\n', repeat);
 fprintf('Estimated test duration: %0.3f hours\n',  num_points * (pause_length + 1.5 + .5) * repeat/ 3600); % factor 2 comes from initialize_servos also pausing
 
-ee = nnc.getFrame().RigidBody(1); %End Effector
+ee = nnc.getFrame().RigidBodies(1); %End Effector
 
 for r = 1:repeat
     fprintf('Repetition %d/%d\n', r, repeat);
@@ -91,18 +88,15 @@ for r = 1:repeat
         S = zeros(15,7);
         
         for i = 1:15
-            % frame = nnc.getFrame();
-            ee = nnc.getFrame().RigidBody(1); %End Effector
-            mm = nnc.getFrame().RigidBody(2); %Mid Effector
-            tt = nnc.getFrame().RigidBody(3); %Top Effector
+            ee = nnc.getFrame().RigidBodies(1); %End Effector
             S(i,:) = [ee.x, ee.y, ee.z, ee.qx, ee.qy, ee.qz, ee.qw];
             pause(1/60);
         end
         
         % Write to output
         output((r-1)*num_points+p+1,1:3) = {datetime,r,p};
-        output((r-1)*num_points+p+1,4:8) = table2cell(md(p,:));
-        output((r-1)*num_points+p+1,9:15) = num2cell(mean(S,1));
+        output((r-1)*num_points+p+1,4:10) = table2cell(md(p,:));
+        output((r-1)*num_points+p+1,11:17) = num2cell(mean(S,1));
 
     end
 end
