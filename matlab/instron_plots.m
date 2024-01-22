@@ -172,6 +172,16 @@ T_sst_Torque_min = min(T_sst_Torque,[],3)-mean(T_sst_Torque,3);
 
 shadedErrorBar(deg2rad(mean(T_ssb_Rotation,3)),mean(T_sst_Torque,3),[reshape(T_sst_Torque_max,[],1),-reshape(T_sst_Torque_min,[],1)],'lineProps',{'Color',map(1,:),'lineWidth',3,'MarkerSize',10,"DisplayName",""})
 
+P = polyfit(deg2rad(mean(T_ssb_Rotation,3)),mean(T_ssb_Torque,3),1);
+K_b_ss = P(1);
+fprintf('\n Simple spring steel Kb is: %.2f (N-mm/rad) \n', K_b_ss);
+
+P = polyfit(deg2rad(mean(T_ssb_Rotation,3)),mean(T_sst_Torque,3),1);
+K_t_ss = P(1);
+fprintf('\n Simple spring steel Kt is: %.2f (N-mm/rad) \n', K_t_ss);
+
+fprintf('\n Simple spring steel twist-to-bend is: %.2f \n', K_t_ss/K_b_ss);
+
 % figure formatting
 set(gcf,'color','w');
 set(fig, 'Units', 'inches');
@@ -248,6 +258,16 @@ T_tst_Torque_max = max(T_tst_Torque,[],3)-mean(T_tst_Torque,3);
 T_tst_Torque_min = min(T_tst_Torque,[],3)-mean(T_tst_Torque,3);
 
 shadedErrorBar(deg2rad(mean(T_tsb_Rotation,3)),mean(T_tst_Torque,3),[reshape(T_tst_Torque_max,[],1),-reshape(T_tst_Torque_min,[],1)],'lineProps',{'Color',map(1,:),'lineWidth',3,'MarkerSize',10,"DisplayName",""})
+
+P = polyfit(deg2rad(mean(T_tsb_Rotation,3)),mean(T_tsb_Torque,3),1);
+K_b_ts = P(1);
+fprintf('\n Complex spring steel Kb is: %.2f (N-mm/rad) \n', K_b_ts);
+
+P = polyfit(deg2rad(mean(T_tsb_Rotation,3)),mean(T_tst_Torque,3),1);
+K_t_ts = P(1);
+fprintf('\n Complex spring steel Kt is: %.2f (N-mm/rad) \n', K_t_ts);
+
+fprintf('\n Complex spring steel twist-to-bend is: %.2f \n', K_t_ts/K_b_ts);
 
 % figure formatting
 set(gcf,'color','w');
