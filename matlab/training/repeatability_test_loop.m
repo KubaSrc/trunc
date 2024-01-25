@@ -1,111 +1,107 @@
 clear all; close all; clc
-addpath('./util/NatNet_SDK_4.1/NatNetSDK/Samples/Matlab');
+addpath('./util')
 
 % Test variables
-motor_testing = 1;
 num_points = 100;
 repeat = 5;
-pause_length = 1.25;
+pause_length = 1.75;
+random_order = false;
+pulse_length = 0;
+noise_samples = 15;
+movment_time = 2;
 
 %% Initial setup
 
-% Load in home state
-home_comp = load("home_comp.mat").home_comp;
+% Save path
+currentDateTime = datetime('now');
+dirName = datestr(currentDateTime, 'yyyy_mm_dd_HH_MM_SS');
+save_path = ['./repeatability/', dirName];
+photo_path = [save_path,'/pictures'];
+mkdir(save_path);
+mkdir(photo_path);
 
-% Calculate positions from motor deltas
-motor_pos = load("motor_pos_repeat_fast.mat").motor_pos_repeat_fast;
-md = readtable("./md_repeat_fast.csv");
-motor_pos(1,:) = home_comp;
+% Camera setup
+cam = videoinput('winvideo', 1);
+set(cam, 'FramesPerTrigger', Inf);
+set(cam, 'ReturnedColorspace', 'rgb')
+cam.FrameGrabInterval = 1;  % Grab one frame every second
 
-% Connect to servos and initialize the arm
-if ~exist('port','var')
-    port = serialport("COM4", 9600);
-    channels = 0:11;
-    pos = zeros(12,1);
-    global position;
-    if motor_testing
-        initialize_servos(port, channels, pause_length,pos,home_comp);
-        pause(5);
-        stop_servos(port, channels);
-    end
-end
-
-% Connect to motive
-if ~exist('nnc','var')
-    nnc = connect_to_natnet();
-end
-
-ee = nnc.getFrame().RigidBodies(1) %End Effector
-
-xe = {ee.x, ee.y, ee.z};
-qe = {ee.qx, ee.qy, ee.qz, ee.qw};
+% Hardware
+arm = robotArm();
+motor = armMotor();
+l_delta = load("./trajectory/delta_fast_repeat.mat").delta_fast;
+comp = load("./state/comp.mat").comp;
 
 %% Loop and collect data
 
 % Initialize output
-init_frame = nnc.getFrame();
-output = cell(num_points*repeat + 1, 17); % + 3 + 4 + marker_count * 3);
-output(1,:) = {'date and time','Repeat num','Test num','d0_end','d1_end','d2_end','d0_body','d1_body','d2_body','dL',...
+output = cell(num_points*repeat + 1, 10);
+output(1,:) = {'date and time','Repeat num','Test num',...
     'x_end_avg','y_end_avg','z_end_avg','qx_end_avg','qy_end_avg','qz_end_avg','qw_end_avg'};
 
 fprintf('Starting test\n');
 fprintf('Total %d samples\n', repeat);
-fprintf('Estimated test duration: %0.3f hours\n',  num_points * (pause_length + 1.5 + .5) * repeat/ 3600); % factor 2 comes from initialize_servos also pausing
+fprintf('Estimated test duration: %0.3f hours\n',  num_points * (pause_length + movment_time) * repeat/ 3600);
 
-ee = nnc.getFrame().RigidBodies(1); %End Effector
-
+% Run test loop
 for r = 1:repeat
     fprintf('Repetition %d/%d\n', r, repeat);
-    for p = 1:num_points
-        % Verify that Optitrack is connected
-        if (~nnc.IsConnected)
-            error('Not connected :(');
-            break;
-        end
+   
+    % Determine the order of points
+    if random_order
+        % Visit points in a random order
+        pointOrder = randperm(num_points);
+    else
+        % Visit points in a fixed order
+        pointOrder = 1:num_points;
+    end
 
-        fprintf('Point %d/%d\n', p, num_points);
+    arm.reset_arm();
+
+    for p_idx = 1:num_points
+        
+        p = pointOrder(p_idx); % Get the actual point index
+
+        fprintf('Point: %d/%d Point id: %d \n', p_idx, num_points, p);
         fprintf('========================\n');
         
-        % Command each servo based on motor position for that iteration
-        if motor_testing
-            start_pos = position.';
-            t_pause = 0.1;
-            v = 20;
-            d = motor_pos(p,:)-start_pos;
-            d_abs = sqrt(sum(d.^2));
-            n = round(d_abs/(v*t_pause));
-            for scale = linspace(0.1,1,n)
-                for motor = 0:11
-                    set_servo_position_auxarm(port,motor,start_pos(motor+1)+scale*d(motor+1),position);
-                end
-                pause(t_pause)
-            end
-        end
+        % Set arm to new pose
+        arm.set_pos(comp+l_delta(p,:))
         
+        % Pause for equillibirum
         pause(pause_length)
 
-        % Sample 15 times to reduce noise
-        S = zeros(15,7);
+        % Sample to reduce noise
+        S = zeros(noise_samples,7);
         
-        for i = 1:15
-            ee = nnc.getFrame().RigidBodies(1); %End Effector
-            S(i,:) = [ee.x, ee.y, ee.z, ee.qx, ee.qy, ee.qz, ee.qw];
+        for i = 1:noise_samples
+            tool = arm.get_pose();
+            S(i,:) = [tool.x, tool.y, tool.z, tool.qx, tool.qy, tool.qz, tool.qw];
             pause(1/60);
         end
         
         % Write to output
         output((r-1)*num_points+p+1,1:3) = {datetime,r,p};
-        output((r-1)*num_points+p+1,4:10) = table2cell(md(p,:));
-        output((r-1)*num_points+p+1,11:17) = num2cell(mean(S,1));
+        output((r-1)*num_points+p+1,4:10) = num2cell(mean(S,1));
+
+        % Take a photo
+        img = getsnapshot(cam);
+        % Save the image to disk.
+        filename = sprintf('/pose_%d_repetition_%d.jpg', p, r);
+        im_path = [photo_path,filename];
+        imwrite(img, im_path);
 
     end
 end
 
-% Turn off servos
-initialize_servos(port, channels, pause_length,pos,home_comp);
-pause(5)
-stop_servos(port, channels);
+% Reset
+arm.reset_arm();
+
+% Clean up.
+delete(cam)
+clear cam
 
 % Save output file
-save_path = append("./repeatability/",datestr(datetime('now'),'mm_dd_yyyy'),".csv");
-writecell(output,save_path)
+writecell(output,[save_path,'/positions.csv'])
+copyfile('./state', save_path);
+copyfile('./trajectory', save_path);

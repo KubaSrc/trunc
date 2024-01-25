@@ -1,117 +1,62 @@
-clear all;
-addpath('./util/NatNet_SDK_4.1/NatNetSDK/Samples/Matlab');
+clear all; close all; clc;
 addpath('./util/')
 
-home_zero = load("home_comp.mat").home_comp;
-% home_zero = zeros([12,1]);
-
-% Connect to servos and initialize the arm
-if ~exist('port','var')
-    port = serialport("COM4", 9600);
-    channels = 0:11;
-    pos = zeros(12,1);
-    global position;
-
-    initialize_servos(port, channels, 1,pos,home_zero);
-    
-    pause(5);
-    
-    stop_servos(port, channels);
-end
+% Create an instance of the arm and motor
+motor = armMotor();
+arm = robotArm();
+arm.reset_arm()
  
-%% Find position and compression value
+%% Find home position
 
-home = [-105,-110,-90,-114,-110,-74,-116,-110,-102,0,0,0];
+set_home = true;
 
-% Compression ratios
-c_0 = 2;
-c_1 = 1.5;
-c_2 = 1;
+home = [163,151,153,160,155,150,155,153,145];
+arm.set_pos(home)
 
-% Compression scalar
-c = 0;
-comp = [repmat([c_0*c,c_1*c,c_2*c],1,3),[0,0,0]];
-home_comp = home + comp;
-
-for motor = 0:11
-    set_servo_position_auxarm(port,motor,home_comp(motor+1),position);
+if set_home
+    save('./state/home',"home");
 end
 
-%% Simple check for Optitrack
+%% Verify compression
 
-% Connect to motive
-if ~exist('nnc','var')
-    nnc = connect_to_natnet();
+set_comp = true;
+
+home = load('./state/home').home;
+delta_l = -20;
+comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
+comp = home + comp_delta;
+
+arm.set_pos(comp);
+
+if set_comp
+    save('./state/comp',"comp");
 end
 
-tool = nnc.getFrame().RigidBodies(1) %End Effector
 
-%% Quick repetability test
+%% Set max compression
 
-home_comp = load("home_comp.mat").home_comp;
-trial_pos = home_comp + [-170,-120,-60,0,0,0,0,0,0,0,0,0];
+set_comp = true;
 
-n_trials = 1;
+home = load('./state/home').home;
+delta_l = -80;
+comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
+comp_max = home + comp_delta;
 
-% Connect to motive
-if ~exist('nnc','var')
-    nnc = connect_to_natnet();
+arm.set_pos(comp_max);
+
+if set_comp
+    save('./state/comp_max',"comp_max");
 end
 
-% Store data
-x_home = zeros([1,5]);
-y_home = zeros([1,5]);
-z_home = zeros([1,5]);
+%%  Motor
 
-for i = 1:n_trials
+motor.pulse(1)
 
-    % Go to home position
-    for motor = 0:11
-    set_servo_position_auxarm(port,motor,home_comp(motor+1),position);
-    end
-    
-    pause(2);
+%% Optitrack
 
-    if i == 1
-        tool = nnc.getFrame().RigidBodies(1) %End Effector
-        x_first = tool.x;
-        y_first = tool.y;
-        z_first = tool.z;
-    end
+tool = arm.get_pose();
+disp(tool)
 
-    % Go to trial pos
-    for motor = 0:11
-    set_servo_position_auxarm(port,motor,trial_pos(motor+1),position);
-    end
+%% Turn off motors
 
-    pause(5);
-
-    % % Go back to home position
-    % for motor = 0:11
-    % set_servo_position_auxarm(port,motor,home_comp(motor+1),position);
-    % end
-    
-    pause(5);
-
-    tool = nnc.getFrame().RigidBodies(1) %End Effector
-    x_home(i) = tool.x;
-    y_home(i) = tool.y;
-    z_home(i) = tool.z;
-end
-
-d = sqrt((x_home - x_first).^2 + (y_home - y_first).^2 + (z_home - z_first).^2).*1000
-
-%% Save the state
-
-save('./home',"home");
-save('./home_comp',"home_comp");
-save('./comp_ratio',"c_0","c_1","c_2");
-
-%% Reset motors
-
-home_comp = load("home_comp.mat").home_comp;
-
-% Turn off servos
-initialize_servos(port, channels, 1, pos,home_comp);
-pause(5)
-stop_servos(port, channels);
+arm.stop_motors()

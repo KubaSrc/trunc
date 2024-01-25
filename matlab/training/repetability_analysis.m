@@ -1,5 +1,7 @@
 %% Global setup
 
+restoredefaultpath;
+
 close all; clear all; clc
 warning('off','all')
 
@@ -19,7 +21,10 @@ export_fig = false;
 
 %% Load in data
 
-T = readtable("./repeatability/01_16_2024.csv");
+T = readtable("./repeatability/2024_01_24_21_00_43/positions.csv");
+% Flip z and y
+z = T.z_end_avg; y = T.y_end_avg;
+T.y_end_avg = z; T.z_end_avg = y;
 n_points = 100;
 
 % find distance from mean, averge distance error, and distance variance

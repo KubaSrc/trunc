@@ -1,122 +1,97 @@
-%% Global setup
+close all; clc; clear all;
 
-close all; clear all; clc
-warning('off','all')
-% Fonts
-ax_font_size = 30; label_font_size = 36; 
-legend_font_size = 28; title_font_size = 34;
-% Figures
-fig_w = 750; fig_h = 600; fig_s = 1.6;
-set(0,'DefaultTextFontname', 'CMU Sans Serif' )
-set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
-map = brewermap(9,'Set1');
+rng(7);
+dr_max = 55; % limit for rotation
+dl_max = 80; % limit for extension
+n = 1000;
 
-%% Generate random relative motor positions
+%% Define sweep over the configuration space
 
-% Maximum cable deltas and maximum length change
-d_max = 40;
-L_max = 40;
+dl = -dl_max.*rand(n,1);
 
-% Random sample size
-rng(8);
-n = 15000;
+% Wrist
+dl_wrist = -dr_max.*rand(n, 3);
+for i = 1:n
+    zeroIndex = randi(3);
+    dl_wrist(i, zeroIndex) = 0; % Randomly zero out to prevent a length change
+end
 
-% End effector
-d_end = -sqrt(normrnd(0,d_max/3,[n,3]).^2);
+% Elbow
+dl_elbow = -dr_max.*rand(n, 3);
+for i = 1:n
+    zeroIndex = randi(3);
+    dl_elbow(i, zeroIndex) = 0; % Randomly zero out to prevent a length change
+end
 
-% Body
-d_body = -sqrt(normrnd(0,d_max/3,[n,3]).^2);
+% Shoulder
+dl_shoulder = -dr_max.*rand(n, 3);
+for i = 1:n
+    zeroIndex = randi(3);
+    dl_shoulder(i, zeroIndex) = 0; % Randomly zero out to prevent a length change
+end
 
-% Length
-dL = -sqrt(normrnd(0,L_max/3,[n,1]).^2);
 
-motor_deltas = [d_end, d_body, dL];
-%% Calculate absolute motor position
+% Anti-slackening compensation
+dl_elbow = dl_elbow + dl_shoulder;
+dl_wrist = dl_wrist + dl_elbow;
 
-motor_pos = delta2pos(d_end,d_body,dL);
+% Add in compression values
+dl_wrist = dl_wrist + dl;
+dl_elbow = dl_elbow + (5/7).*dl;
+dl_shoulder = dl_shoulder + (3/7).*dl;
 
-motor_deltas_fast = zeros(size(motor_deltas));
-
-save("./motor_pos_repeat.mat","motor_pos")
+lengths_sweep = [dl_wrist(:,1),dl_elbow(:,1),dl_shoulder(:,1),...
+                dl_wrist(:,2),dl_elbow(:,2),dl_shoulder(:,2),...
+                dl_wrist(:,3),dl_elbow(:,3),dl_shoulder(:,3)];
 
 %% Greedy solution to TSP
+map = brewermap(9,'Set1');
 
-motor_pos_fast = zeros(size(motor_pos));
-motor_pos_fast(1,:) = motor_pos(1,:);
+delta_fast = zeros(size(lengths_sweep));
+delta_fast(1,:) = lengths_sweep(1,:);
 
 % Keep track of which answers to exclude
-exclude = true(size(motor_pos,1),1);
+exclude = true(size(delta_fast,1),1);
 exclude(1) = false;
 
-for i = 1:size(motor_pos_fast,1)-1
+for i = 1:size(delta_fast,1)-1
     % Keep track of original indices
     original_idx = find(exclude);
     
-    motor_trim = motor_pos(exclude,:);
-    idx = knnsearch(motor_trim,motor_pos_fast(i,:));
+    delta_trim = lengths_sweep(exclude,:);
+    idx = knnsearch(delta_trim,delta_fast(i,:));
     
     % Update indices
     original_idx_selected = original_idx(idx);
-    
-    motor_pos_fast(i+1,:) = motor_pos(original_idx_selected,:);
-    motor_deltas_fast(i+1,:) = motor_deltas(original_idx_selected,:);
+
+    delta_fast(i+1,:) = lengths_sweep(original_idx_selected,:);
     exclude(original_idx_selected) = false;
 end
 
-fast_diff = sqrt(sum(diff(motor_pos_fast).^2,2));
-regular_diff = sqrt(sum(diff(motor_pos).^2,2));
+fast_diff = sqrt(sum(diff(delta_fast).^2,2));
+regular_diff = sqrt(sum(diff(lengths_sweep).^2,2));
 
 mean(fast_diff)
 mean(regular_diff)
 
 fig = figure(1); clf; hold on;
 set(gcf,'color','w');
-set(gcf,'position',[0,0,fig_w*fig_s,fig_h*fig_s])
-set(gca,'fontsize',ax_font_size);
+set(gcf,'position',[0,0,600,600])
+set(gca,'fontsize',14);
 ax = gca;
 grid on; grid minor;
 set(get(fig,'CurrentAxes'),'GridAlpha',1,'MinorGridAlpha',0.7);
 plot(fast_diff,'lineWidth',3,'Color',map(1,:));
 plot(regular_diff,'lineWidth',3,'Color',map(2,:));
 legend(["Greedy KNN","random"])
-xlabel("Data point index",fontSize=label_font_size)
-ylabel("Total motor displacment",fontSize=label_font_size)
+xlabel("Data point index",fontSize=14)
+ylabel("Total tool displacment",fontSize=14)
 
 % Save output
-save("./motor_pos_fast.mat","motor_pos_fast")
-writematrix(motor_pos_fast,"./motor_pos_fast.csv")
-writematrix(motor_deltas_fast,"./motor_deltas_fast.csv")
-
-%% Sample for repetability
-
-% Greedy solution to TSP
-[motor_pos_repeat,sample_idx] = datasample(motor_pos,100);
-motor_pos_repeat_fast = zeros(size(motor_pos_repeat));
-motor_pos_repeat_fast(1,:) = motor_pos_repeat(1,:);
-
-md_repeat = motor_deltas(sample_idx,:);
-md_repeat_fast = zeros(size(md_repeat));
-md_repeat_fast(1,:) = md_repeat_fast(1,:);
-
-
-% Keep track of which answers to exclude
-exclude = true(size(motor_pos_repeat,1),1);
-exclude(1) = false;
-
-for i = 1:size(motor_pos_repeat_fast,1)-1
-    % Keep track of original indices
-    original_idx = find(exclude);
-    
-    motor_trim = motor_pos_repeat(exclude,:);
-    idx = knnsearch(motor_trim,motor_pos_repeat_fast(i,:));
-    
-    % Update indices
-    original_idx_selected = original_idx(idx);
-    
-    motor_pos_repeat_fast(i+1,:) = motor_pos_repeat(original_idx_selected,:);
-    md_repeat_fast(i+1,:) = md_repeat(original_idx_selected,:);
-    exclude(original_idx_selected) = false;
+if (length(delta_fast) < 5000)
+    save("./trajectory/delta_fast_repeat.mat","delta_fast")
+    writematrix(delta_fast,"./trajectory/delta_fast_repeat.csv")
+else
+    save("./trajectory/delta_fast.mat","delta_fast")
+    writematrix(delta_fast,"./trajectory/delta_fast.csv")
 end
-
-save("./motor_pos_repeat_fast.mat","motor_pos_repeat_fast")
-writematrix(md_repeat_fast,"./md_repeat_fast.csv")
