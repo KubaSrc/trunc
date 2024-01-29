@@ -3,7 +3,7 @@ classdef robotArm
     properties
         port;
         channels = 0:8;
-        comp = load("./state/comp.mat").comp;
+        comp = load("./state/home.mat").homes;
         comp_max = load("./state/comp_max.mat").comp_max;
         pause_length = 3;
         nnc
@@ -66,8 +66,8 @@ classdef robotArm
                 end
         
                 % Check if timeout (15 seconds) is exceeded
-                if toc(startTime) > 20
-                    fprintf('Timeout: Servos did not reach the desired position within 20 seconds.\n');
+                if toc(startTime) > 15
+                    fprintf('Timeout: Servos did not reach the desired position within 15 seconds.\n');
                     disp(e)
                     break;
                 end

@@ -5,7 +5,7 @@ addpath('./util')
 num_points = 100;
 repeat = 5;
 pause_length = 1.75;
-random_order = false;
+random_order = true;
 pulse_length = 0;
 noise_samples = 15;
 movment_time = 2;

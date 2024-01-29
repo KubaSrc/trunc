@@ -1,8 +1,8 @@
 close all; clc; clear all;
 
 rng(7);
-dr_max = 55; % limit for rotation
-dl_max = 80; % limit for extension
+dr_max = 50; % limit for rotation
+dl_max = 60; % limit for extension
 n = 1000;
 
 %% Define sweep over the configuration space
