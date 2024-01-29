@@ -6,7 +6,7 @@ close all; clear all; clc
 warning('off','all')
 
 % fig sizes and scale factor
-fig_w = 300; fig_h = 300; fig_s = 5;
+fig_w = 300; fig_h = 300; fig_s = 3;
 
 % fonts
 ax_font_size = 7*fig_s;
@@ -33,7 +33,6 @@ end_point_mean = mean(end_point,3);
 end_point_d = sqrt(sum((end_point-end_point_mean).^2,2));
 e_point_d = abs((end_point-end_point_mean));
 end_point_mean_e = mean(end_point_d,3);
-end_point_var_e =  mean(end_point_d,3);
 
 % quaternion distance from mean
 quat = [reshape(T.qx_end_avg,n_points,1,[]),reshape(T.qy_end_avg,n_points ,1,[]),reshape(T.qz_end_avg,n_points ,1,[]),reshape(T.qw_end_avg,n_points ,1,[])];
@@ -80,7 +79,6 @@ set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
 if export_fig
     exportgraphics(gcf,'../Figures/Repetability/pos_error.png','Resolution',300*fig_s)
 end
-
 
 
 %% Figure 2.2
@@ -148,7 +146,7 @@ fig = figure(24); clf; hold on;
 histogram(end_point_quat_d,'facecolor',map(2,:),'facealpha',.2,'EdgeColor','none')
 histogram(end_point_quat_d,'EdgeColor',map(2,:),'linewidth',3,'DisplayStyle','stairs')
 
-% PRINT OUT ENDPOINT
+% PR
 mean(reshape(end_point_quat_d,1,[]))
 
 % figure formatting
