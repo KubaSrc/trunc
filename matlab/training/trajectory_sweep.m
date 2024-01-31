@@ -5,9 +5,9 @@ dr_max = 50; % limit for rotation
 dl_max = 60; % limit for extension
 n = 20000;
 
-num_trajectories = 200;
-num_waypoints = 50;
-max_trajectory_length = 200;
+num_trajectories = 500;
+num_waypoints = 16;
+max_trajectory_length = 80;
 point_per_distance = 1/10;
 
 %% Define sweep over the configuration space
@@ -57,6 +57,7 @@ for t_idx = 1:num_trajectories
     % Randomly sample based on num_waypoints
     sampled_indices = randperm(n, num_waypoints);
     waypoints = lengths_sweep(sampled_indices, :);
+    waypoints = [zeros(1,9);waypoints];
 
     % Sort waypoints using greedy_tsp
     sorted_waypoints = greedy_TSP(waypoints);

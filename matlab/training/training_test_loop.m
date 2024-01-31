@@ -2,7 +2,7 @@ clear all; close all; clc
 addpath('./util')
 
 % Test variables
-pause_length = 1.75;
+pause_length = .5;
 random_order = true;
 pulse_length = 0;
 noise_samples = 15;
@@ -32,19 +32,21 @@ comp = load("./state/comp.mat").comp;
 
 %% Loop and collect data
 
-training_waypoints = load('./trajectory/training_waypoints.mat').training_waypoints;
+training_waypoints = load('./trajectory/training_waypoints.mat').points;
 
 num_points = size(training_waypoints,1);
 num_trajectories = size(training_waypoints,3);
 
 % Initialize output
-output = cell(num_points*repeat + 1, 10);
+output = cell(num_points*num_trajectories + 1, 10);
 output(1,:) = {'date and time','Trajectory','Waypoint',...
     'x_end_avg','y_end_avg','z_end_avg','qx_end_avg','qy_end_avg','qz_end_avg','qw_end_avg'};
 
 fprintf('Starting test\n');
-fprintf('Total %d samples\n', repeat);
 fprintf('Estimated test duration: %0.3f hours\n',  num_points * (pause_length + movment_time) * num_trajectories/ 3600);
+
+% Save header
+writecell(output(1,:),[save_path,'/positions.csv'])
 
 % Run test loop
 for r = 1:num_trajectories
@@ -54,7 +56,7 @@ for r = 1:num_trajectories
 
     for p = 1:num_points
 
-        fprintf('Point: %d/%d', p);
+        fprintf('Point: %d/%d\n', p,num_points);
         fprintf('========================\n');
         
         % Set arm to new pose
@@ -75,11 +77,12 @@ for r = 1:num_trajectories
         % Write to output
         output((r-1)*num_points+p+1,1:3) = {datetime,r,p};
         output((r-1)*num_points+p+1,4:10) = num2cell(mean(S,1));
+        writecell(output((r-1)*num_points+p+1,:),[save_path,'/positions.csv'],'WriteMode','append')
 
         % Take a photo
         img = getsnapshot(cam);
         % Save the image to disk.
-        filename = sprintf('/pose_%d_trajectory_%d.jpg', p, r);
+        filename = sprintf('/trajectory%d_pose_%d.jpg', r, p);
         im_path = [photo_path,filename];
         imwrite(img, im_path);
 
@@ -94,6 +97,5 @@ delete(cam)
 clear cam
 
 % Save output file
-writecell(output,[save_path,'/positions.csv'])
 copyfile('./state', save_path);
 copyfile('./trajectory', save_path);
