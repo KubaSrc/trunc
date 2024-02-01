@@ -84,7 +84,8 @@ for t_idx = 1:num_trajectories
 end
 
 points = training_trajectories;
-save("./trajectory/training_waypoints","points")
+% points = reshape(points,[],9);
+% save("./trajectory/training_waypoints_matrix","points")
 %% Greedy solution to TSP
 
 function delta_fast = greedy_TSP(lengths_sweep)
