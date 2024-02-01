@@ -32,6 +32,7 @@ arm = robotArm();
 motor = armMotor();
 l_delta = load("./trajectory/delta_fast_repeat.mat").delta_fast;
 comp = load("./state/comp.mat").comp;
+disp(comp)
 
 %% Loop and collect data
 
@@ -41,10 +42,10 @@ num_points = size(training_waypoints,1);
 num_trajectories = size(training_waypoints,3);
 
 % Initialize output
-output = cell(num_points*num_trajectories + 1, 19);
+output = cell(num_points*num_trajectories + 1, 10);
 output(1,:) = {'date and time','Trajectory','Waypoint',...
     'x_end_avg','y_end_avg','z_end_avg','qx_end_avg','qy_end_avg','qz_end_avg','qw_end_avg',...
-    'l0','l1','l2','l3','l4','l5','l6','l7','l8'};
+    'l0','l1','l2','l3','l4','l5','l6','l7'};
 
 fprintf('Starting test\n');
 fprintf('Estimated test duration: %0.3f hours\n',  num_points * (pause_length + movment_time) * num_trajectories/ 3600);
@@ -64,9 +65,8 @@ for r = 1:num_trajectories
         fprintf('========================\n');
         
         % Set arm to new pose
-        delta_pos = training_waypoints(p,:,r); 
-        pos = comp+training_waypoints(p,:,r);
-        arm.set_pos(pos)
+        disp(training_waypoints(p,:,r))
+        arm.set_pos(comp+training_waypoints(p,:,r))
         
         % Pause for equillibirum
         pause(pause_length)
@@ -83,7 +83,7 @@ for r = 1:num_trajectories
         % Write to output
         output((r-1)*num_points+p+1,1:3) = {datetime,r,p};
         output((r-1)*num_points+p+1,4:10) = num2cell(mean(S,1));
-        output((r-1)*num_points+p+1,11:19) = num2cell(delta_pos);
+        
         writecell(output((r-1)*num_points+p+1,:),[save_path,'/positions.csv'],'WriteMode','append')
 
         % Take a photo
