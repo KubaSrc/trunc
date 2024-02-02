@@ -1,6 +1,6 @@
 close all; clc; clear all;
 
-rng(7);
+rng(3);
 dr_max = 50; % limit for rotation
 dl_max = 60; % limit for extension
 n = 1000;
