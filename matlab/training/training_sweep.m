@@ -1,7 +1,8 @@
 close all; clc; clear all;
 
 rng(7);
-dr_max = 50; % limit for rotation
+dr_max = 60; % elbow and shoulder
+dr_max_wrist = 100; % wrist rotation limit
 dl_max = 60; % limit for extension
 n = 20000;
 
@@ -15,7 +16,7 @@ point_per_distance = 1/10;
 dl = -dl_max.*rand(n,1);
 
 % Wrist
-dl_wrist = -dr_max.*rand(n, 3);
+dl_wrist = -dr_max_wrist.*rand(n, 3);
 for i = 1:n
     zeroIndex = randi(3);
     dl_wrist(i, zeroIndex) = 0; % Randomly zero out to prevent a length change
@@ -30,6 +31,10 @@ end
 
 % Shoulder and elbow are coupled
 dl_shoulder = dl_elbow;
+
+% Try to decompress from rotations
+dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/3;
+dl = dl + dl_offset;
 
 % Anti-slackening compensation
 dl_elbow = dl_elbow + dl_shoulder;
