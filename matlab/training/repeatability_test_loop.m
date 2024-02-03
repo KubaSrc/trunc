@@ -4,7 +4,7 @@ addpath('./util')
 % Test variables
 num_points = 100;
 repeat = 5;
-pause_length = 1.75;
+pause_length = 0.5;
 random_order = true;
 pulse_length = 0;
 noise_samples = 15;

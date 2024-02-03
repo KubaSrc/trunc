@@ -1,6 +1,8 @@
 close all; clc; clear all;
 addpath('./util')
 
+save_output = false;
+
 syms theta_1 theta_2 theta_3 theta_4 theta_5 theta_6 L d_tool
 
 % Shoulder
@@ -22,16 +24,16 @@ T_tool = T_wrist*T_tool_local;
 %% Visualize arm config
 
 % Shoulder
-theta_1_n = deg2rad(0);
-theta_2_n = deg2rad(20);
+theta_1_n = deg2rad(30);
+theta_2_n = deg2rad(0);
 
 % Elbow
-theta_3_n = deg2rad(0);
-theta_4_n = deg2rad(20);
+theta_3_n = deg2rad(30);
+theta_4_n = deg2rad(0);
 
 % Wrist
-theta_5_n = deg2rad(0);
-theta_6_n = deg2rad(20);
+theta_5_n = deg2rad(40);
+theta_6_n = deg2rad(0);
 
 % Lengths
 L_n = 690;
@@ -48,7 +50,13 @@ T_tool_n = double(subs(T_tool,[theta_1, theta_2, theta_3, theta_4, theta_5, thet
                     [theta_1_n, theta_2_n, theta_3_n, theta_4_n, theta_5_n, theta_6_n, L_n, d_tool_n]));
 
 % Visualize arm
-[segments,lengths] = draw_arm(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n);
+[segments] = draw_arm(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n);
+
+home_segments = load('./kinematics/home.mat').segments;
+delta_segments = home_segments - segments; 
+
+%%
+
 
 %% Sweep over configuration space
 
@@ -183,18 +191,19 @@ ylabel("Total tool displacment",fontSize=14)
 
 
 % Save output
-if (length(tool_pos_fast) < 5000)
-    save("./trajectory/delta_fast_repeat.mat","delta_fast")
-    save("./trajectory/geo_fast_repeat.mat","geo_fast")
-    writematrix(delta_fast,"./trajectory/delta_fast_repeat.csv")
-    writematrix(geo_fast,"./trajectory/geo_fast_repeat.csv")
-else
-    save("./trajectory/delta_fast.mat","delta_fast")
-    save("./trajectory/geo_fast.mat","geo_fast")
-    writematrix(delta_fast,"./trajectory/delta_fast.csv")
-    writematrix(geo_fast,"./trajectory/geo_fast.csv")
+if save_output
+    if (length(tool_pos_fast) < 5000)
+        save("./trajectory/delta_fast_repeat.mat","delta_fast")
+        save("./trajectory/geo_fast_repeat.mat","geo_fast")
+        writematrix(delta_fast,"./trajectory/delta_fast_repeat.csv")
+        writematrix(geo_fast,"./trajectory/geo_fast_repeat.csv")
+    else
+        save("./trajectory/delta_fast.mat","delta_fast")
+        save("./trajectory/geo_fast.mat","geo_fast")
+        writematrix(delta_fast,"./trajectory/delta_fast.csv")
+        writematrix(geo_fast,"./trajectory/geo_fast.csv")
+    end
 end
-
 %% Helper functions
 
 function T = Segment_transform(theta_1,theta_2,d)
@@ -218,10 +227,10 @@ Tz = [1,0,0,0;
       0,1,0,0;
       0,0,1,d;
       0,0,0,1];
-T = Tz*Rx*Ry;
+T = Rz_m*Tz*Rx*Rz;
 end
 
-function [segments,lengths] = cable_space(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n)
+function [segments] = cable_space(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n)
     % Plot triangles
     tri_origin = [0,65.*sin(pi/3),-65.*sin(pi/3),0,;
                 65,-65.*cos(pi/3),-65.*cos(pi/3),65;
@@ -240,16 +249,10 @@ function [segments,lengths] = cable_space(T_shoulder_n,T_elbow_n,T_wrist_n,T_too
     s1_e = s_elbow(1); s2_e = s_elbow(2); s3_e = s_elbow(3);
     s1_w = s_wrist(1); s2_w = s_wrist(2); s3_w = s_wrist(3);
     segments = [s1_w,s1_e,s1_s,s2_w,s2_e,s2_s,s3_w,s3_e,s3_s];
-    
-    % Find cable lengths
-    l1_s = s1_s; l2_s = s2_s; l3_s = s3_s;
-    l1_e = s1_s+s1_e; l2_e = s2_s+s2_e; l3_e = s3_s+s3_e;
-    l1_w = s1_s+s1_e+s1_w; l2_w = s2_s+s2_e+s2_w; l3_w = s3_s+s3_e+s3_w;
-    lengths = [l1_w,l1_e,l1_s,l2_w,l2_e,l2_s,l3_w,l3_e,l3_s];
 end
 
 % Helper function for drawing arm
-function [segments,lengths] = draw_arm(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n)
+function [segments] = draw_arm(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n)
     % Plot of the arm
     figure(1); clf; hold on
     set(gcf, 'Color', 'white');
@@ -289,12 +292,6 @@ function [segments,lengths] = draw_arm(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n
     s1_w = s_wrist(1); s2_w = s_wrist(2); s3_w = s_wrist(3);
     segments = [s1_w,s1_e,s1_s,s2_w,s2_e,s2_s,s3_w,s3_e,s3_s];
     
-    % Find cable lengths
-    l1_s = s1_s; l2_s = s2_s; l3_s = s3_s;
-    l1_e = s1_s+s1_e; l2_e = s2_s+s2_e; l3_e = s3_s+s3_e;
-    l1_w = s1_s+s1_e+s1_w; l2_w = s2_s+s2_e+s2_w; l3_w = s3_s+s3_e+s3_w;
-    lengths = [l1_w,l1_e,l1_s,l2_w,l2_e,l2_s,l3_w,l3_e,l3_s];
-
     % Plot joints
     r = 30;
     [X, Y, Z] = sphere(100);

@@ -28,13 +28,8 @@ for i = 1:n
     dl_elbow(i, zeroIndex) = 0; % Randomly zero out to prevent a length change
 end
 
-% Shoulder
-dl_shoulder = -dr_max.*rand(n, 3);
-for i = 1:n
-    zeroIndex = randi(3);
-    dl_shoulder(i, zeroIndex) = 0; % Randomly zero out to prevent a length change
-end
-
+% Shoulder and elbow are coupled
+dl_shoulder = dl_elbow;
 
 % Anti-slackening compensation
 dl_elbow = dl_elbow + dl_shoulder;

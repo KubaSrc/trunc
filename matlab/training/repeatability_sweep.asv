@@ -1,8 +1,7 @@
 close all; clc; clear all;
 
 rng(3);
-dr_max = 60; % elbow and shoulder
-dr_max_wrist = 100; % wrist rotation limit
+dr_max = 50; % limit for rotation
 dl_max = 60; % limit for extension
 n = 1000;
 
@@ -11,7 +10,7 @@ n = 1000;
 dl = -dl_max.*rand(n,1);
 
 % Wrist
-dl_wrist = -dr_max_wrist.*rand(n, 3);
+dl_wrist = -dr_max.*rand(n, 3);
 for i = 1:n
     zeroIndex = randi(3);
     dl_wrist(i, zeroIndex) = 0; % Randomly zero out to prevent a length change
@@ -27,22 +26,20 @@ end
 % Shoulder ane elbow are coupled
 dl_shoulder = dl_elbow;
 
-% Try to decompress from rotations
-dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/3;
-dl = dl + dl_offset;
+dl_offset = mean(abs(dl_wrist),2) + mean(abs(dl_elbow),2) + mean(abs(dl_shoulder),2);
 
-% Anti-slackening compensation
-dl_elbow = dl_elbow + dl_shoulder;
-dl_wrist = dl_wrist + dl_elbow;
-
-% Add in compression values
-dl_wrist = dl_wrist + dl;
-dl_elbow = dl_elbow + (5/7).*dl;
-dl_shoulder = dl_shoulder + (3/7).*dl;
-
-lengths_sweep = [dl_wrist(:,1),dl_elbow(:,1),dl_shoulder(:,1),...
-                dl_wrist(:,2),dl_elbow(:,2),dl_shoulder(:,2),...
-                dl_wrist(:,3),dl_elbow(:,3),dl_shoulder(:,3)];
+% % Anti-slackening compensation
+% dl_elbow = dl_elbow + dl_shoulder;
+% dl_wrist = dl_wrist + dl_elbow;
+% 
+% % Add in compression values
+% dl_wrist = dl_wrist + dl;
+% dl_elbow = dl_elbow + (5/7).*dl;
+% dl_shoulder = dl_shoulder + (3/7).*dl;
+% 
+% lengths_sweep = [dl_wrist(:,1),dl_elbow(:,1),dl_shoulder(:,1),...
+%                 dl_wrist(:,2),dl_elbow(:,2),dl_shoulder(:,2),...
+%                 dl_wrist(:,3),dl_elbow(:,3),dl_shoulder(:,3)];
 
 %% Greedy solution to TSP
 map = brewermap(9,'Set1');

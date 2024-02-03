@@ -27,11 +27,11 @@ comp = load('./state/comp.mat').comp;
 
 dr = -60; % limit for rotation
 dr_wrist = -100;
-dl = -60; % limit for extension
+dl = -40; % limit for extension
 
 r_ratio = [0,1,1];
-% r_ratio_top = [1,0,0];
-r_ratio_top = [0,1,1];
+r_ratio_top = [1,0,0];
+% r_ratio_top = [0,1,1];
 
 dl_wrist = r_ratio_top.*dr_wrist;
 dl_elbow = r_ratio.*dr;
