@@ -7,8 +7,8 @@ warning('off','all')
 fig_w = 300; fig_h = 300; fig_s = 3;
 
 % fonts
-ax_font_size = 7*fig_s;
-legend_font_size = 7*fig_s;
+ax_font_size = 5*fig_s;
+legend_font_size = 5*fig_s;
 set(0,'DefaultTextFontname', 'CMU Sans Serif' )
 set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
 
@@ -231,7 +231,7 @@ set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
 xticks([0,5,10,15])
 yticks([0,1,2,3,4])
 xlim([0,17])
-ylim([0,3.25])
+xlim([0,15.1])
 
 
 % export fig

@@ -1,6 +1,6 @@
 close all; clc; clear all
 
-p = load('./trajectory/training_waypoints.mat').points;
+p = load('./training/data/2024_02_03_14_22_02/training_waypoints.mat').points;
 
 block_length = size(p,1);
 p_reshape = zeros(size(p,1)*size(p,3),9);
@@ -12,4 +12,4 @@ for block_num = 1:size(p,3)
 end
 
 points = p_reshape;
-save('./trajectory/training_waypoints_matrix.mat','points');
+save('./training/data/2024_02_03_14_22_02/training_waypoints_matrix.mat','points');
