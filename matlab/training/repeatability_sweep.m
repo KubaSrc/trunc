@@ -2,7 +2,7 @@ close all; clc; clear all;
 
 rng(3);
 dr_max = 60; % elbow and shoulder
-dr_max_wrist = 100; % wrist rotation limit
+dr_max_wrist = 80; % wrist rotation limit
 dl_max = 60; % limit for extension
 n = 1000;
 
@@ -27,13 +27,12 @@ end
 % Shoulder ane elbow are coupled
 dl_shoulder = dl_elbow;
 
-% Try to decompress from rotations
-dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/3;
+dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/8;
 dl = dl + dl_offset;
 
 % Anti-slackening compensation
 dl_elbow = dl_elbow + dl_shoulder;
-dl_wrist = dl_wrist + dl_elbow;
+dl_wrist = dl_wrist + 0.75.*dl_elbow;
 
 % Add in compression values
 dl_wrist = dl_wrist + dl;

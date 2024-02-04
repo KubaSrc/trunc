@@ -30,7 +30,6 @@ cam.FrameGrabInterval = 1;  % Grab one frame every second
 % Hardware
 arm = robotArm();
 motor = armMotor();
-l_delta = load("./trajectory/delta_fast_repeat.mat").delta_fast;
 comp = load("./state/comp.mat").comp;
 
 %% Loop and collect data

@@ -2,13 +2,13 @@ close all; clc; clear all;
 
 rng(7);
 dr_max = 60; % elbow and shoulder
-dr_max_wrist = 100; % wrist rotation limit
+dr_max_wrist = 80; % wrist rotation limit
 dl_max = 60; % limit for extension
 n = 20000;
 
-num_trajectories = 500;
+num_trajectories = 400;
 num_waypoints = 16;
-max_trajectory_length = 80;
+max_trajectory_length = 100;
 point_per_distance = 1/10;
 
 %% Define sweep over the configuration space
@@ -32,13 +32,12 @@ end
 % Shoulder and elbow are coupled
 dl_shoulder = dl_elbow;
 
-% Try to decompress from rotations
-dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/3;
+dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/8;
 dl = dl + dl_offset;
 
 % Anti-slackening compensation
 dl_elbow = dl_elbow + dl_shoulder;
-dl_wrist = dl_wrist + dl_elbow;
+dl_wrist = dl_wrist + 0.75.*dl_elbow;
 
 % Add in compression values
 dl_wrist = dl_wrist + dl;
@@ -84,8 +83,7 @@ for t_idx = 1:num_trajectories
 end
 
 points = training_trajectories;
-% points = reshape(points,[],9);
-% save("./trajectory/training_waypoints_matrix","points")
+save("./trajectory/training_waypoints","points")
 %% Greedy solution to TSP
 
 function delta_fast = greedy_TSP(lengths_sweep)

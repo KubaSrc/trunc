@@ -26,23 +26,24 @@ arm.set_pos(max_comp);
 comp = load('./state/comp.mat').comp;
 
 dr = -60; % limit for rotation
-dr_wrist = -100;
-dl = -40; % limit for extension
+dr_wrist = -60;
+dl = -30; % limit for extension
 
-r_ratio = [0,1,1];
-r_ratio_top = [1,0,0];
-% r_ratio_top = [0,1,1];
+r_ratio = [1,0,.35];
+% r_ratio_top = [1,0,0];
+r_ratio_top = [1,0,.35];
+% r_ratio_top = [0,1,.65];
 
 dl_wrist = r_ratio_top.*dr_wrist;
 dl_elbow = r_ratio.*dr;
 dl_shoulder = r_ratio.*dr;
 
-dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/3;
+dl_offset = (max(abs(dl_wrist)) + max(abs(dl_elbow)) + max(abs(dl_shoulder)))/10;
 dl = dl + dl_offset;
 
 % Anti-slackening compensation
 dl_elbow = dl_elbow + dl_shoulder;
-dl_wrist = dl_wrist + dl_elbow;
+dl_wrist = dl_wrist + 0.75.*dl_elbow;
 
 % Add in compression values
 dl_wrist = dl_wrist + dl;
