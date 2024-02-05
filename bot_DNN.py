@@ -11,7 +11,7 @@ class aux_bot_DNN(aux_bot):
 
         super().__init__(drive_path, pos_path, motor_path,
                  train_forward, train_inverse,
-                 normalize,BATCH_SIZE,MAX_SEQ_LENGTH,model_type='DNN',)
+                 normalize,BATCH_SIZE,MAX_SEQ_LENGTH,model_type='DNN')
 
         # Constant for forward model
         self.EPOCHS = 100
@@ -44,7 +44,7 @@ class aux_bot_DNN(aux_bot):
         self.MOMENTUM = 0.9
         self.DROPOUT = 0
         self.LAYERS = 1
-        self.GAMMA = 0.95
+        self.GAMMA = 0.9
 
         # Train inverse model
         if  train_inverse:

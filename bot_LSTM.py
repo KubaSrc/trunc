@@ -1,17 +1,17 @@
 from bot import *
 
-class aux_bot(aux_bot):
+class aux_bot_LSTM(aux_bot):
 
     def __init__(self,drive_path = None, pos_path = None, motor_path = None,
                  train_forward = False, train_inverse = False, normalize=True):
 
         # Size attributes
-        MAX_SEQ_LENGTH = 80
+        MAX_SEQ_LENGTH = 100
         BATCH_SIZE = 16
 
         super().__init__(drive_path, pos_path, motor_path,
                  train_forward, train_inverse,
-                 normalize,BATCH_SIZE,MAX_SEQ_LENGTH,model_type='DNN',)
+                 normalize,BATCH_SIZE,MAX_SEQ_LENGTH,model_type='LSTM')
 
         # Constant for forward model
         self.EPOCHS = 100
@@ -20,6 +20,7 @@ class aux_bot(aux_bot):
         self.WEIGHT_DECAY = 0
         self.DROPOUT = 0
         self.LAYERS = 1
+        self.GAMMA = 0.95
 
         # Train forward model
         if  train_forward:
@@ -50,7 +51,7 @@ class aux_bot(aux_bot):
         self.MOMENTUM = 0.9
         self.DROPOUT = 0
         self.LAYERS = 1
-        self.GAMMA = 0.9
+        self.GAMMA = 0.95
 
         # Train inverse model
         if  train_inverse:
@@ -72,7 +73,7 @@ class aux_bot(aux_bot):
         # Load inverse model instead
         if not train_inverse:
             self.ik_net = self.inverse_net(hidden_lstm=512, hidden=1552,device=self.device,linear_depth=3)
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/inverse_2024_02_04-22_48_17_10.251mm'))
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_05-18_35_58_9.478mm'))
             self.ik_net.eval()
             self.ik_net.to(self.device)
             print("[aux_net] Inverse model succesfully loaded")

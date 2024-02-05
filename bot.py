@@ -41,7 +41,6 @@ class aux_bot():
         self.output_size = self.end_slice.stop - self.end_slice.start
 
         # Upload data as fixed length trajectories instead of single points
-        self.MAX_SEQ_LENGTH = 1
         self.upload_data()
 
 
