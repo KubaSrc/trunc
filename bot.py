@@ -601,7 +601,7 @@ class aux_bot():
             inference_data = self.SequenceDataset(data,
                                                 input_range = self.motor_slice,
                                                 output_range = self.end_slice,
-                                                sequence_length = 100,
+                                                sequence_length = self.MAX_SEQ_LENGTH,
                                                 shuffle = False,
                                                 train = False,
                                                 inverse = True)
@@ -616,5 +616,5 @@ class aux_bot():
             Y_pred = self.denormalize_data(Y_pred.numpy(),"motor")
             y = self.denormalize_data(y.numpy(),"motor")
 
-            savemat(self.drive_path + output_path,{"output": Y_pred})
+            savemat(self.drive_path + self.model_type + '_' + output_path,{"output": Y_pred})
 
