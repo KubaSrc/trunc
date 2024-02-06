@@ -46,7 +46,7 @@ class aux_bot_LSTM(aux_bot):
             print("[aux_bot_LSTM] Forward model succesfully loaded")
 
         # Constant for inverse model
-        self.EPOCHS = 50
+        self.EPOCHS = 100
         self.LEARNING_RATE = 0.001
         self.MOMENTUM = 0.9
         self.DROPOUT = 0
@@ -73,7 +73,7 @@ class aux_bot_LSTM(aux_bot):
         # Load inverse model instead
         if not train_inverse:
             self.ik_net = self.inverse_net(hidden_lstm=512, hidden=1552,device=self.device,linear_depth=3)
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_05-18_35_58_9.478mm'))
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_06-17_45_21_10.445mm'))
             self.ik_net.eval()
             self.ik_net.to(self.device)
             print("[aux_bot_LSTM] Inverse model succesfully loaded")
