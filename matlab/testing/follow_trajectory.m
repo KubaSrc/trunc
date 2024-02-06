@@ -6,6 +6,8 @@ pause_length = 0.5;
 pulse_length = 0;
 noise_samples = 15;
 trajectory = 'circle';
+trajectory_name = ['./',trajectory,'_trajectory.mat'];
+inputs_name = ['./',trajectory,'_trajectory_inputs.mat'];
 
 %% Initial setup
 
@@ -26,9 +28,12 @@ cam.FrameGrabInterval = 1;  % Grab one frame every second
 % Hardware
 arm = robotArm();
 motor = armMotor();
-l_delta = load('./circle/trajectory.mat').output;
+l_delta = load(inputs_name).output;
+num_points=size(l_delta,1);
 comp = load('../training/state/comp.mat').comp;
 
+copyfile(trajectory_name, save_path);
+copyfile(inputs_name, save_path);
 
 %% Loop and collect data
 
@@ -39,56 +44,44 @@ output(1,:) = {'date and time','p',...
 
 fprintf('Starting test\n');
 
-% Run test loop
-for r = 1:repeat
-    fprintf('Repetition %d/%d\n', r, repeat);
+
    
-    % Determine the order of points
-    if random_order
-        % Visit points in a random order
-        pointOrder = randperm(num_points);
-    else
-        % Visit points in a fixed order
-        pointOrder = 1:num_points;
+arm.reset_arm();
+
+for p = 1:num_points
+   
+
+    fprintf('Waypoint: %d/%d \n', p, num_points);
+    fprintf('========================\n');
+    
+    % Set arm to new pose
+    arm.set_pos(comp+l_delta(p,:))
+    
+    % Pause for equillibirum
+    pause(pause_length)
+
+    % Sample to reduce noise
+    S = zeros(noise_samples,7);
+    
+    for i = 1:noise_samples
+        tool = arm.get_pose();
+        S(i,:) = [tool.x, tool.y, tool.z, tool.qx, tool.qy, tool.qz, tool.qw];
+        pause(1/60);
     end
+    
+    % Write to output
+    output((r-1)*num_points+p+1,1:2) = {datetime,p};
+    output((r-1)*num_points+p+1,3:9) = num2cell(mean(S,1));
 
-    arm.reset_arm();
+    % Take a photo
+    img = getsnapshot(cam);
+    % Save the image to disk.
+    filename = sprintf('/pose_%d_repetition_%d.jpg', p);
+    im_path = [photo_path,filename];
+    imwrite(img, im_path);
 
-    for p_idx = 1:num_points
-        
-        p = pointOrder(p_idx); % Get the actual point index
-
-        fprintf('Point: %d/%d Point id: %d \n', p_idx, num_points, p);
-        fprintf('========================\n');
-        
-        % Set arm to new pose
-        arm.set_pos(comp+l_delta(p,:))
-        
-        % Pause for equillibirum
-        pause(pause_length)
-
-        % Sample to reduce noise
-        S = zeros(noise_samples,7);
-        
-        for i = 1:noise_samples
-            tool = arm.get_pose();
-            S(i,:) = [tool.x, tool.y, tool.z, tool.qx, tool.qy, tool.qz, tool.qw];
-            pause(1/60);
-        end
-        
-        % Write to output
-        output((r-1)*num_points+p+1,1:4) = {datetime,r,p,p_idx};
-        output((r-1)*num_points+p+1,5:11) = num2cell(mean(S,1));
-
-        % Take a photo
-        img = getsnapshot(cam);
-        % Save the image to disk.
-        filename = sprintf('/pose_%d_repetition_%d.jpg', p, r);
-        im_path = [photo_path,filename];
-        imwrite(img, im_path);
-
-    end
 end
+
 
 % Reset
 arm.reset_arm();
@@ -99,5 +92,5 @@ clear cam
 
 % Save output file
 writecell(output,[save_path,'/positions.csv'])
-copyfile('./state', save_path);
-copyfile('./trajectory', save_path);
+copyfile('../training/state', save_path);
+copyfile('../training/trajectory', save_path);
