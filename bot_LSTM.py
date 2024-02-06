@@ -43,7 +43,7 @@ class aux_bot_LSTM(aux_bot):
             self.fk_net = self.forward_net(hidden_lstm=512, hidden=1552)
             self.fk_net.load_state_dict(torch.load(drive_path + '/models/forward_2024_02_02-16_40_20_3.213mm'))
             self.fk_net.eval()
-            print("[aux_net] Forward model succesfully loaded")
+            print("[aux_bot_LSTM] Forward model succesfully loaded")
 
         # Constant for inverse model
         self.EPOCHS = 50
@@ -76,7 +76,7 @@ class aux_bot_LSTM(aux_bot):
             self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_05-18_35_58_9.478mm'))
             self.ik_net.eval()
             self.ik_net.to(self.device)
-            print("[aux_net] Inverse model succesfully loaded")
+            print("[aux_bot_LSTM] Inverse model succesfully loaded")
 
     ########################
     # FORWARD NETWORK

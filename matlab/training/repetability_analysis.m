@@ -50,7 +50,7 @@ else
 end
 
 % quaternion distance from mean
-quat = [reshape(T.qx_end_avg,n_points,1,[]),reshape(T.qy_end_avg,n_points ,1,[]),reshape(T.qz_end_avg,n_points ,1,[]),reshape(T.qw_end_avg,n_points ,1,[])];
+quat = [reshape(T.qw_end_avg,n_points,1,[]),reshape(T.qx_end_avg,n_points ,1,[]),reshape(T.qy_end_avg,n_points ,1,[]),reshape(T.qz_end_avg,n_points ,1,[])];
 end_point_quat = repmat(quaternion(1, 0, 0, 0), size(quat,1), size(quat,3));
 
 % just matlab conversion from array to object

@@ -17,8 +17,41 @@ quat_new = convert_quat(quat);
 
 map = brewermap(9,'Set1');
 
-%% Histogram of tilt
+%% Find point density in data
 
+save_density = true;
+
+X_m = reshape(X,100,[]);
+Y_m = reshape(Y,100,[]);
+Z_m = reshape(Z,100,[]);
+
+dX_m = diff(X_m);
+dY_m = diff(Y_m);
+dZ_m = diff(Z_m);
+
+% Calculate the Euclidean distances between consecutive points
+distances = sum(sqrt(dX_m.^2 + dY_m.^2 + dZ_m.^2),1);
+
+dist_per_point = 100./mean(distances);
+
+if save_density
+    save('./state/point_density.mat','dist_per_point')
+end
+
+%% Save home pos
+save_home = true;
+
+quat_home = quat(1:100:end);
+quat_bar = meanrot(quat_home,1);
+xyz_home = [X(1:100:end),Y(1:100:end),Z(1:100:end)];
+xyz_bar = mean(xyz_home,1);
+pos = [xyz_bar,compact(quat_bar)];
+
+if save_home
+    save('./state/home_measured.mat','pos')
+end
+
+%% Histogram of tilt
 figure(1); clf; hold on;
 
 hist(pose_dist)
@@ -26,14 +59,11 @@ ylabel('Count')
 xlabel('Tilt (degree)')
 
 %% Visualize the pose
-
 n = 100;
 
 plot_triad(X(1:n),Y(1:n),Z(1:n),quat_new(1:n))
 
 %% Poses that are close to normal to the plane
-
-
 pose_slice = pose_dist < 5;
 
 plot_triad(X(pose_slice),Y(pose_slice),Z(pose_slice),quat(pose_slice))

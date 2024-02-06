@@ -384,7 +384,7 @@ class aux_bot():
             xyz_quat[i,:] = y
 
         # Create scatter plot of distance errors
-        p = ax3.scatter(xyz_quat[:,0], xyz_quat[:,2], xyz_quat[:,1], c = test_error, cmap=plt.cm.jet,vmin=0,vmax=0.65*np.max(test_error), alpha=0.2)
+        p = ax3.scatter(xyz_quat[:,0], xyz_quat[:,1], xyz_quat[:,2], c = test_error, cmap=plt.cm.jet,vmin=0,vmax=0.65*np.max(test_error), alpha=0.2)
         ax3.view_init(45, 45)
         cb = f.colorbar(p)
         cb.set_label("Error (mm)")
@@ -528,7 +528,7 @@ class aux_bot():
             X = X.numpy(force=True)
             X = self.denormalize_data(X,"end_full")
             color = colormap(norm(test_error[i]))
-            plt.plot(X[:,0],X[:,2],X[:,1],marker='o', color=color, alpha=0.2)
+            plt.plot(X[:,0],X[:,1],X[:,2],marker='o', color=color, alpha=0.2)
 
         # Plot formatting
         ax3.view_init(45, 45)
@@ -582,37 +582,39 @@ class aux_bot():
     # Run inverse prediction
     def inverse_prediction(self,input_path=None,output_path=None):
         with torch.no_grad():
-            # Find end effector position we want to predict for inverse verification
-            if input_path == None:
 
-                n_points = 7500
+            # Load in motor data
+            pos_data = scipy.io.loadmat(self.drive_path + input_path)['wp']
 
-                prediction_data = self.inverse_test_data
+            # We initialize pos to zero. Just need something for the sequence loader to return.
+            motor_data = np.zeros((pos_data.shape[0],9))
 
-                # Gather all sequence data
-                X, y = prediction_data.get_all_items()
-                Y_pred = self.ik_net(X.to(self.device))
+            print("[aux_bot] Running model inference.")
+            print(pos_data.shape)
+            print(motor_data.shape)
 
-                # Create numpy arrays
-                Y_pred = Y_pred.cpu()
-                Y_pred = self.denormalize_data(Y_pred.numpy(),"motor")
-                y = self.denormalize_data(y.numpy(),"motor")
+            data = np.hstack((motor_data,pos_data))
 
-                print("Predicted: ", Y_pred[0:10,:])
-                print("Measured: ", y[0:10,:])
+            data = self.normalize_data(data)
 
-                np.savetxt(self.drive_path+"/input_regression.csv",Y_pred,delimiter=",",header="dtm_13,dtm_24,de_13,de_24,dl",comments='')
-                savemat(self.drive_path+"/input_regression.mat",{"output": Y_pred})
+            # Create a sequence sequences
+            inference_data = self.SequenceDataset(data,
+                                                input_range = self.motor_slice,
+                                                output_range = self.end_slice,
+                                                sequence_length = 100,
+                                                shuffle = False,
+                                                train = False,
+                                                inverse = True)
 
-            # Generate motor trajectory
-            else:
-                traj = torch.from_numpy(np.loadtxt(input_path,skiprows = 1,delimiter=',',dtype = 'float32',usecols = tuple(range(0,7))))
-                traj = self.normalize_data(traj,"end_full")
 
-                x_pred = self.ik_net(traj.to(self.device))
-                x_pred = x_pred.cpu()
-                x_pred = self.denormalize_data(x_pred,"motor").numpy(force=True)
+            # Gather all sequence data
+            X, y = inference_data.get_all_items()
+            Y_pred = self.ik_net(X.to(self.device))
 
-                np.savetxt(output_path,x_pred,delimiter=",",header="dtm_13,dtm_24,de_13,de_24,dl",comments='')
-                print("Trajectory saved!")
+            # Create numpy arrays
+            Y_pred = Y_pred.cpu()
+            Y_pred = self.denormalize_data(Y_pred.numpy(),"motor")
+            y = self.denormalize_data(y.numpy(),"motor")
+
+            savemat(self.drive_path + output_path,{"output": Y_pred})
 

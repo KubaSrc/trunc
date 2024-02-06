@@ -36,7 +36,7 @@ class aux_bot_DNN(aux_bot):
             self.fk_net = self.forward_net(hidden=1024)
             self.fk_net.load_state_dict(torch.load(drive_path + '/models/DNN_forward_2024_02_02-18_25_58_5.155mm'))
             self.fk_net.eval()
-            print("[aux_net] Forward model succesfully loaded")
+            print("[aux_bot_DNN] Forward model succesfully loaded")
 
         # Constant for inverse model
         self.EPOCHS = 50
@@ -58,7 +58,7 @@ class aux_bot_DNN(aux_bot):
             self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2024_02_04-21_53_52_13.964mm'))
             self.ik_net.eval()
             self.ik_net.to(self.device)
-            print("[aux_net] Inverse model succesfully loaded")
+            print("[aux_bot_DNN] Inverse model succesfully loaded")
 
     ########################
     # FORWARD NETWORK
