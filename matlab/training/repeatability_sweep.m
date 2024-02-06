@@ -1,6 +1,6 @@
 close all; clc; clear all;
 
-rng(3);
+rng(5);
 dr_max = 60; % elbow and shoulder
 dr_max_wrist = 80; % wrist rotation limit
 dl_max = 60; % limit for extension

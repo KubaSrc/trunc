@@ -5,7 +5,7 @@ addpath('./util')
 num_points = 100;
 repeat = 5;
 pause_length = 0.5;
-random_order = true;
+random_order = false;
 pulse_length = 0;
 noise_samples = 15;
 movment_time = 2;
@@ -73,7 +73,7 @@ for r = 1:repeat
 
         % Sample to reduce noise
         S = zeros(noise_samples,7);
-        
+                                                                                                                                                                                                                                                                                                       
         for i = 1:noise_samples
             tool = arm.get_pose();
             S(i,:) = [tool.x, tool.y, tool.z, tool.qx, tool.qy, tool.qz, tool.qw];

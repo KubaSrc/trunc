@@ -6,6 +6,7 @@ pause_length = .5;
 pulse_length = 0;
 noise_samples = 15;
 movment_time = 2;
+traj_start = 89;
 
 %% Initial setup
 
@@ -52,7 +53,7 @@ fprintf('Estimated test duration: %0.3f hours\n',  num_points * (pause_length + 
 writecell(output(1,:),[save_path,'/positions.csv'])
 
 % Run test loop
-for r = 1:num_trajectories
+for r = traj_start:num_trajectories
     fprintf('Trajectory %d/%d\n', r, num_trajectories);
 
     arm.reset_arm();
