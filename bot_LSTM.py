@@ -32,7 +32,7 @@ class aux_bot_LSTM(aux_bot):
                                            dropout = self.DROPOUT,
                                            device = self.device)
 
-            self.fk_net.load_state_dict(torch.load(drive_path + '/models/forward_2024_02_02-16_40_20_3.213mm'))
+            self.fk_net.load_state_dict(torch.load(drive_path + '/models/forward_2024_02_02-16_40_20_3.213mm',map_location=self.device))
 
             # Train and evaluate
             self.train_forward(self.fk_net,self.EPOCHS,self.LEARNING_RATE,self.MOMENTUM,self.WEIGHT_DECAY,annealing=True)
@@ -41,7 +41,7 @@ class aux_bot_LSTM(aux_bot):
         # Load forward model instead
         if not train_forward:
             self.fk_net = self.forward_net(hidden_lstm=512, hidden=1552)
-            self.fk_net.load_state_dict(torch.load(drive_path + '/models/forward_2024_02_02-16_40_20_3.213mm'))
+            self.fk_net.load_state_dict(torch.load(drive_path + '/models/forward_2024_02_02-16_40_20_3.213mm',map_location=self.device))
             self.fk_net.eval()
             print("[aux_bot_LSTM] Forward model succesfully loaded")
 
@@ -64,7 +64,7 @@ class aux_bot_LSTM(aux_bot):
                                            num_layers=self.LAYERS,
                                            linear_depth=3)
             # Bootstrap off previous run
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/inverse_2024_02_02-17_46_11_14.739pwm'))
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/inverse_2024_02_02-17_46_11_14.739pwm',map_location=self.device))
 
             # Train and evaluate
             self.train_inverse(self.ik_net,self.EPOCHS,self.LEARNING_RATE,self.MOMENTUM,self.WEIGHT_DECAY,annealing=True)
@@ -73,7 +73,7 @@ class aux_bot_LSTM(aux_bot):
         # Load inverse model instead
         if not train_inverse:
             self.ik_net = self.inverse_net(hidden_lstm=512, hidden=1552,device=self.device,linear_depth=3)
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_06-17_45_21_10.445mm'))
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_06-17_45_21_10.445mm',map_location=self.device))
             self.ik_net.eval()
             self.ik_net.to(self.device)
             print("[aux_bot_LSTM] Inverse model succesfully loaded")

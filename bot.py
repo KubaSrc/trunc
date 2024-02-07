@@ -612,9 +612,17 @@ class aux_bot():
             Y_pred = self.ik_net(X.to(self.device))
 
             # Create numpy arrays
+            X = X.cpu()
+            X = self.denormalize_data(X.numpy(),"end_full")
             Y_pred = Y_pred.cpu()
             Y_pred = self.denormalize_data(Y_pred.numpy(),"motor")
             y = self.denormalize_data(y.numpy(),"motor")
 
-            savemat(self.drive_path + self.model_type + '_' + output_path,{"output": Y_pred})
+            Y_actual = self.data[0,self.motor_slice]
+            Y_actual = self.denormalize_data(Y_actual,"motor")
+
+            X_actual = self.data[0,self.end_slice]
+            X_actual = self.denormalize_data(X_actual,"end_full")
+
+            savemat(self.drive_path + output_path,{"output": Y_pred})
 

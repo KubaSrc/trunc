@@ -1,7 +1,7 @@
 close all; clc; clear all;
 
-home_pos = load('../training/state/home_measured.mat').pos;
-point_density = load('../training/state/point_density.mat').dist_per_point;
+home_pos = load('./state/home_measured.mat').pos;
+point_density = load('./state/point_density.mat').dist_per_point;
 
 %% First trajectory (circle)
 
@@ -14,7 +14,7 @@ theta = linspace(0,2*pi,n).';
 
 x_c = r.*cos(theta);
 y_c = r.*sin(theta);
-z_c = repmat(10,size(theta));
+z_c = repmat(60,size(theta));
 
 wp = [zeros(1,3), tool_quat;
       x_c, y_c, z_c, repmat(tool_quat,[n,1])];
@@ -31,7 +31,7 @@ zlabel('Z-axis'); % Label for the z-axis
 
 title('3D Line Plot with Grid'); % Title for the plot
 
-save('./circle_trajectory.mat','wp')
+save('./inference/circle_trajectory.mat','wp')
 
 %% Second trajectory (steps)
 
@@ -84,7 +84,7 @@ function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints)
     end
 
     % Combine interpolated positions and quaternions
-    interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions];
+    interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions(:,[4,2,3,1])];
 end
 
 function interpolatedWaypoints = interp_waypoints_fixed_distance(waypoints, spacing)
@@ -138,6 +138,6 @@ function interpolatedQuaternions = interpQuaternions(quaternions, numPoints, met
             interpolatedQuaternions(i, :) = quaternions(end, :);
         end
     end
-    interpolatedQuaternions(end, :) = quaternions(end, :); % Ensure the last quaternion is directly assigned
+    interpolatedQuaternions(end, :) = quaternions(end, [4 2 3 1]); % Ensure the last quaternion is directly assigned
 end
 

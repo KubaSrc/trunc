@@ -19,7 +19,7 @@ map = brewermap(9,'Set1');
 
 %% Find point density in data
 
-save_density = true;
+save_density = false;
 
 X_m = reshape(X,100,[]);
 Y_m = reshape(Y,100,[]);
