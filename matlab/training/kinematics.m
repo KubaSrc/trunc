@@ -24,11 +24,11 @@ T_tool = T_wrist*T_tool_local;
 %% Visualize arm config
 
 % Shoulder
-theta_1_n = deg2rad(30);
+theta_1_n = deg2rad(20);
 theta_2_n = deg2rad(0);
 
 % Elbow
-theta_3_n = deg2rad(30);
+theta_3_n = deg2rad(20);
 theta_4_n = deg2rad(0);
 
 % Wrist
@@ -36,7 +36,7 @@ theta_5_n = deg2rad(40);
 theta_6_n = deg2rad(0);
 
 % Lengths
-L_n = 690;
+L_n = 710-15;
 d_tool_n = 83;
 
 % Numerical substituion
@@ -52,11 +52,8 @@ T_tool_n = double(subs(T_tool,[theta_1, theta_2, theta_3, theta_4, theta_5, thet
 % Visualize arm
 [segments] = draw_arm(T_shoulder_n,T_elbow_n,T_wrist_n,T_tool_n);
 
-home_segments = load('./kinematics/home.mat').segments;
-delta_segments = home_segments - segments; 
-
-%%
-
+comp_segments = load('./state/model_comp.mat').segments;
+delta_segments = segments-comp_segments
 
 %% Sweep over configuration space
 

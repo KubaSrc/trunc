@@ -4,7 +4,7 @@ warning('off', 'all');
 %%
 figure(1); clf; hold on; grid on;
 
-motor_inputs = load('./experiments/circle_2024_02_06_16_35_44/LSTM_circle_trajectory_inputs.mat').output;
+motor_inputs = load('./experiments/circle_2024_02_06_16_35_44/circle_trajectory.mat')
 wp = load('./experiments/circle_2024_02_06_16_35_44/circle_trajectory.mat').wp;
 T = readtable('./experiments/circle_2024_02_06_16_35_44/positions.csv');
 
@@ -16,6 +16,3 @@ ylabel('y (mm)')
 zlabel('z (mm)')
 
 legend()
-
-
-l_delta = load("./trajectory/delta_fast_repeat.mat").delta_fast;
