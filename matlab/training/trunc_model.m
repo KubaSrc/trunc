@@ -53,7 +53,7 @@ classdef trunc_model < handle
             obj.d_tool_n = 83;
             obj.comp_segments = load('./state/model_comp.mat').segments;
             obj.max_delta = -20;
-            obj.alpha = -0.5;
+            obj.alpha = -0.4;
 
             % Symbolic forward kinematics
             T_shoulder_local = obj.segment_transform(obj.theta_1, obj.theta_2, -3*obj.L/7);
@@ -143,7 +143,7 @@ classdef trunc_model < handle
             obj.find_segments();
             shoulder = obj.delta_segments(3:3:end);
             % Limit relative rotations and ensure
-            shoulder = min(shoulder) + max(obj.alpha.*(min(shoulder)-shoulder),obj.max_delta);
+            shoulder = min(shoulder) + obj.alpha.*(min(shoulder)-shoulder);
 
             elbow = obj.delta_segments(2:3:end);
             % Limit relative rotations and ensure 
@@ -161,7 +161,7 @@ classdef trunc_model < handle
 
         function [delta_lengths] = find_lengths(obj)
             
-            obj.find_segments();
+            obj.find_adjusted_segments();
             
             % Extract each joint
             dl_wrist = obj.delta_segments(1:3:end);

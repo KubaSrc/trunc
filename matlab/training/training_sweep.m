@@ -1,10 +1,10 @@
 close all; clc; clear all;
 
-rng(7);
+rng(10);
 dr_max = 60; % elbow and shoulder
 dr_max_wrist = 80; % wrist rotation limit
 dl_max = 60; % limit for extension
-n = 20000;
+n = 10000;
 
 num_trajectories = 400;
 num_waypoints = 16;
