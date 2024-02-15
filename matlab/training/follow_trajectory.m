@@ -7,7 +7,7 @@ pulse_length = 0;
 noise_samples = 15;
 model_type = 'LSTM';
 trajectory = 'circle';
-record = false;
+record = true;
 trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
 inputs_name = ['./inference/',model_type,'_',trajectory,'_trajectory_inputs.mat'];
 
@@ -18,8 +18,10 @@ currentDateTime = datetime('now');
 dirName = datestr(currentDateTime, '_yyyy_mm_dd_HH_MM_SS');
 save_path = ['./experiments/',trajectory, dirName];
 photo_path = [save_path,'/pictures'];
-mkdir(save_path);
-mkdir(photo_path);
+if record
+    mkdir(save_path);
+    mkdir(photo_path);
+end
 
 % Camera setup
 cam = videoinput('winvideo', 1);
@@ -50,7 +52,6 @@ arm.reset_arm();
 
 for p = 1:num_points
    
-
     fprintf('Waypoint: %d/%d \n', p, num_points);
     fprintf('========================\n');
     
@@ -85,7 +86,6 @@ for p = 1:num_points
 
 end
 
-
 % Reset
 arm.reset_arm();
 
@@ -94,6 +94,8 @@ delete(cam)
 clear cam
 
 % Save output file
-writecell(output,[save_path,'/positions.csv'])
-copyfile('./state', save_path);
-copyfile('./trajectory', save_path);
+if record
+    writecell(output,[save_path,'/positions.csv'])
+    copyfile('./state', save_path);
+    copyfile('./trajectory', save_path);
+end
