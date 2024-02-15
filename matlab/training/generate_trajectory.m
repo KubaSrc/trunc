@@ -5,21 +5,24 @@ point_density = load('./state/point_density.mat').dist_per_point;
 
 %% First trajectory (circle)
 
+export_traj = false;
+
 tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
 
 n = 20;
 r = 80;
+z_plane = 60;
 theta = linspace(0,2*pi,n).';
 
 x_c = r.*cos(theta);
 y_c = r.*sin(theta);
-z_c = repmat(60,size(theta));
+z_c = repmat(z_plane,size(theta));
 
 wp = [zeros(1,3), tool_quat;
       x_c, y_c, z_c, repmat(tool_quat,[n,1])];
 wp = wp + home_pos;
-wp = interp_waypoints(wp,100);
+wp = interp_waypoints_fixed_distance(wp,1/point_density);
 
 figure(1); clf; hold on; grid on
 
@@ -31,9 +34,51 @@ zlabel('Z-axis'); % Label for the z-axis
 
 title('3D Line Plot with Grid'); % Title for the plot
 
-save('./inference/circle_trajectory.mat','wp')
+if export_traj
+    save('./inference/circle_trajectory.mat','wp')
+end
 
 %% Second trajectory (steps)
+
+tool_rot = eye(3);
+tool_quat = rotm2quat(tool_rot);
+
+l = 80;
+d = -40;
+z_plane = 60;
+
+wp_xyz = [0,0,0; % Origin
+          l,0,z_plane; % #1 (start)
+          l,0,z_plane-d;
+          l,0,z_plane; % #1 (end)
+          -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
+          -l*sin(pi/6),-l*cos(pi/6),z_plane-d;
+          -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
+          l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (start)
+          l*sin(pi/6),-l*cos(pi/6),z_plane-d;
+          l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (end)
+          ];
+
+n = length(wp_xyz);
+
+wp = [wp_xyz, repmat(tool_quat,[n,1])];
+wp = wp + home_pos;
+wp = interp_waypoints(wp,200);
+
+figure(2); clf; hold on; grid on
+
+plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
+
+xlabel('X-axis'); % Label for the x-axis
+ylabel('Y-axis'); % Label for the y-axis
+zlabel('Z-axis'); % Label for the z-axis
+
+title('3D Line Plot with Grid'); % Title for the plot
+
+if export_traj
+    save('./inference/circle_trajectory.mat','wp')
+end
+
 
 %% Third trajectory (orthongal line)
 

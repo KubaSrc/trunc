@@ -144,18 +144,27 @@ class aux_bot():
 
     # Uploads training data
     def upload_data(self):
-        # Position data
-        self.pos_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
-                               usecols = tuple(range(3, 3 + self.output_size)))
 
-        # Motor data
-        motor_data = scipy.io.loadmat(self.drive_path+self.motor_path)
-        self.motor_data = motor_data['points']
-        data_len = np.shape(self.pos_data)[0]
-        self.motor_data = self.motor_data[0:data_len, :]
+        if self.motor_path != None:
+            # Position data
+            self.pos_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
+                                usecols = tuple(range(3, 3 + self.output_size)))
+           
+            # Motor data
+            motor_data = scipy.io.loadmat(self.drive_path+self.motor_path)
+            self.motor_data = motor_data['points']
+            data_len = np.shape(self.pos_data)[0]
+            self.motor_data = self.motor_data[0:data_len, :]
 
-        print("Loaded positions: ",np.shape(self.pos_data))
-        print("Loaded inputs: ", np.shape(self.motor_data))
+        else:
+            # Full data
+            self.pos_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
+                                usecols = tuple(range(3, 3 + self.output_size)))
+            self.motor_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
+                                usecols = tuple(range(3 + self.output_size, 3 + self.output_size + self.input_size)))
+        
+        print("[aux-net] Loaded pos data: ", self.pos_data.shape)
+        print("[aux-net] Loaded motor data: ", self.motor_data.shape)
 
         # Combine arrays into one
         self.data = np.hstack((self.motor_data,self.pos_data))
