@@ -8,6 +8,7 @@ noise_samples = 15;
 movment_time = 2;
 traj_start = 1;
 anti_slack = true;
+slack_spacing = 2;
 
 %% Initial setup
 
@@ -63,26 +64,23 @@ for r = traj_start:num_trajectories
 
     for p = 1:num_points
 
-        slack = 0.6.*slack;
-
         fprintf('Point: %d/%d\n', p,num_points);
         fprintf('========================\n');
         
-        % Set arm to new pose
         delta_pos = training_waypoints(p,:,r); 
         pos = comp+training_waypoints(p,:,r);
-        arm.set_pos(pos+slack)
-        
-        % Pause for equillibirum
-        pause(pause_length)
 
         % Anti-slack compensation
         slack_idx = [3,2,1,6,5,4,9,8,7];
         p_t = 3.5;
         r_t = 1;
 
-        if anti_slack
+        if anti_slack && mod(p-1,slack_spacing) == 0
             % Loop through each cable
+            disp('Removing slack')
+            slack = 0.5.*slack; 
+            arm.set_pos(pos+slack)
+            pause(pause_length)
             for i = 1:length(slack_idx)
                 slack_removed = false;
                 tool_0 = arm.get_pose();
@@ -96,6 +94,13 @@ for r = traj_start:num_trajectories
                 end
             end
         end
+
+        % Set arm to new pose
+        arm.set_pos(pos+slack)
+        
+        % Pause for equillibirum
+        pause(pause_length)
+
 
         % Sample to reduce noise
         S = zeros(noise_samples,7);
