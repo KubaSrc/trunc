@@ -1,0 +1,34 @@
+close all; clc; clear all;
+
+data_path = "./training/data/2024_02_03_14_22_02/positions_trim.csv"
+
+T = readtable("./training/data/2024_02_03_14_22_02/positions_trim.csv");
+
+q1 = rotm2quat(eye(3));
+
+for i = 1:size(T,1)
+    q2 = [T.qw_end_avg(i),T.qx_end_avg(i),T.qy_end_avg(i),T.qz_end_avg(i)];
+    q2 = q2 / norm(q2);
+
+    q2_conj = [q2(1), -q2(2), -q2(3), -q2(4)];
+
+    % Quaternion multiplication (q1_conj * q2)
+    q_rel = quatmultiply(q2_conj, q1);
+    
+    % Convert the relative quaternion to a rotation matrix
+    R_rel = quat2rotm(q_rel);
+    R_2 = quat2rotm(q2);
+
+    % Find new orientation
+    q2_new = rotm2quat(R_rel*R_2);
+
+    % Update table
+    T.qw_end_avg(i) = q2_new(1);
+    T.qx_end_avg(i) = q2_new(2);
+    T.qy_end_avg(i) = q2_new(3);
+    T.qz_end_avg(i) = q2_new(4);
+    
+
+    
+end
+

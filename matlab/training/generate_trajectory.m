@@ -5,7 +5,7 @@ point_density = load('./state/point_density.mat').dist_per_point;
 
 %% First trajectory (circle)
 
-export_traj = true;
+export_traj = false;
 
 tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
@@ -22,9 +22,49 @@ z_c = repmat(z_plane,size(theta));
 wp = [zeros(1,3), tool_quat;
       x_c, y_c, z_c, repmat(tool_quat,[n,1])];
 wp = wp + home_pos;
-wp = interp_waypoints(wp,100);
+wp = interp_waypoints(wp,100,"cubic");
 
 figure(1); clf; hold on; grid on
+
+plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
+
+xlabel('X-axis'); % Label for the x-axis
+ylabel('Y-axis'); % Label for the y-axis
+zlabel('Z-axis'); % Label for the z-axis
+
+if export_traj
+    save('./inference/circle_trajectory.mat','wp')
+end
+
+%% Second trajectory (steps)
+
+tool_rot = eye(3);
+tool_quat = rotm2quat(tool_rot);
+
+l = 80;
+d = 20;
+z_plane = 60;
+
+wp_xyz = [0,0,0; % Origin
+          0,l,z_plane; % #1 (start)
+          0,l,z_plane-d;
+          0,l,z_plane; % #1 (end)
+          -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
+          -l*sin(pi/6),-l*cos(pi/6),z_plane-d;
+          -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
+          l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (start)
+          l*sin(pi/6),-l*cos(pi/6),z_plane-d;
+          l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (end)
+          0,l,z_plane; % #1 (start)
+          ];
+
+n = length(wp_xyz);
+
+wp = [wp_xyz,repmat(tool_quat,[n,1])];
+wp(:,1:3) = wp(:,1:3) + home_pos(1:3);
+wp = interp_waypoints(wp,100,"linear");
+
+figure(2); clf; hold on; grid on
 
 plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
 
@@ -35,57 +75,64 @@ zlabel('Z-axis'); % Label for the z-axis
 title('3D Line Plot with Grid'); % Title for the plot
 
 if export_traj
-    save('./inference/circle_trajectory.mat','wp')
+    save('./inference/triangle_trajectory.mat','wp')
 end
 
-%% Second trajectory (steps)
-
-% tool_rot = eye(3);
-% tool_quat = rotm2quat(tool_rot);
-% 
-% l = 80;
-% d = -40;
-% z_plane = 60;
-% 
-% wp_xyz = [0,0,0; % Origin
-%           l,0,z_plane; % #1 (start)
-%           l,0,z_plane-d;
-%           l,0,z_plane; % #1 (end)
-%           -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
-%           -l*sin(pi/6),-l*cos(pi/6),z_plane-d;
-%           -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
-%           l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (start)
-%           l*sin(pi/6),-l*cos(pi/6),z_plane-d;
-%           l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (end)
-%           ];
-% 
-% n = length(wp_xyz);
-% 
-% wp = [wp_xyz, repmat(tool_quat,[n,1])];
-% wp = wp + home_pos;
-% wp = interp_waypoints(wp,200);
-% 
-% figure(2); clf; hold on; grid on
-% 
-% plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
-% 
-% xlabel('X-axis'); % Label for the x-axis
-% ylabel('Y-axis'); % Label for the y-axis
-% zlabel('Z-axis'); % Label for the z-axis
-% 
-% title('3D Line Plot with Grid'); % Title for the plot
-% 
-% if export_traj
-%     save('./inference/circle_trajectory.mat','wp')
-% end
-
+view([-15,30])
 
 %% Third trajectory (orthongal line)
+
+tool_0_rot = eye(3);
+tool_0_quat = rotm2quat(tool_0_rot);
+
+tool_1_rot = [cosd(90)  0  sind(90);
+                0         1  0;
+             -sind(90)  0  cosd(90)];
+tool_1_quat = rotm2quat(tool_1_rot);
+
+dx = -20;
+dz = 20;
+z0 = 30;
+x0 = -60;
+
+wp_xyz = [0,0,0; % Origin
+          x0,0,z0; % #1 (start)
+          x0+dx,0,z0;
+          x0,0,z0; % #1 (start)
+          x0,0,z0+dz; % #2 (start)
+          x0+dx,0,z0+dz;
+          x0,0,z0+dz; % #2 (end)
+          x0,0,z0+2*dz; % #3 (start)
+          x0+dx,0,z0+2*dz;
+          x0,0,z0+2*dz; % #3 (end)
+          ];
+
+n = length(wp_xyz);
+
+wp = [wp_xyz,repmat(tool_quat,[n,1])];
+wp(:,1:3) = wp(:,1:3) + home_pos(1:3);
+wp = interp_waypoints(wp,100,"linear");
+
+figure(3); clf; hold on; grid on
+
+plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
+
+xlabel('X-axis'); % Label for the x-axis
+ylabel('Y-axis'); % Label for the y-axis
+zlabel('Z-axis'); % Label for the z-axis
+
+title('3D Line Plot with Grid'); % Title for the plot
+
+if export_traj
+    save('./inference/triangle_trajectory.mat','wp')
+end
+
+view([0,0])
 
 %% Helper functions
 
 
-function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints)
+function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
     % Extract positions and quaternions
     positions = waypoints(:, 1:3);
     quaternions = waypoints(:, 4:7);
@@ -104,7 +151,12 @@ function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints)
 
     % Interpolate positions using cubic spline
     tPositions = linspace(0, 1, totalPoints);
-    interpolatedPositions = spline(normalizedCumulativeDistances, positions', tPositions)';
+    if mode == "cubic"
+        interpolatedPositions = spline(normalizedCumulativeDistances, positions', tPositions)';
+
+    elseif mode == "linear"
+    interpolatedPositions = interp1(normalizedCumulativeDistances, positions, tPositions, 'linear');
+    end
 
     % Initialize quaternion interpolation
     interpolatedQuaternions = zeros(totalPoints, 4);
@@ -129,60 +181,5 @@ function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints)
     end
 
     % Combine interpolated positions and quaternions
-    interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions(:,[4,2,3,1])];
+    interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions(:,[2,3,4,1])];
 end
-
-function interpolatedWaypoints = interp_waypoints_fixed_distance(waypoints, spacing)
-    % Extract positions and quaternions
-    positions = waypoints(:, 1:3);
-    quaternions = waypoints(:, 4:7);
-
-    % Generate a dense spline for positions
-    tDense = linspace(0, 1, 10000); % Use a dense sampling to approximate the continuous path
-    densePositions = spline(linspace(0, 1, size(waypoints, 1)), positions', tDense)';
-
-    % Sample points at fixed distance apart
-    [sampledPositions, sampledIndices] = samplePointsAtFixedDistance(densePositions, spacing);
-
-    % Sample quaternions corresponding to the sampled position indices
-    % Normalize quaternions before interpolation to ensure they represent valid rotations
-    normQuaternions = quaternions ./ vecnorm(quaternions, 2, 2);
-    denseQuaternions = interpQuaternions(normQuaternions, length(tDense), 'slerp');
-    sampledQuaternions = denseQuaternions(sampledIndices, :);
-
-    % Combine sampled positions and quaternions
-    interpolatedWaypoints = [sampledPositions, sampledQuaternions];
-end
-
-function [sampledPositions, sampledIndices] = samplePointsAtFixedDistance(positions, spacing)
-    sampledPositions = positions(1, :); % Start with the first point
-    sampledIndices = 1; % Index of the first point
-    currentDist = 0; % Initialize current distance accumulator
-    for i = 2:size(positions, 1)
-        currentDist = currentDist + norm(positions(i, :) - positions(i-1, :));
-        if currentDist >= spacing
-            sampledPositions = [sampledPositions; positions(i, :)];
-            sampledIndices = [sampledIndices; i];
-            currentDist = 0; % Reset distance accumulator
-        end
-    end
-end
-
-function interpolatedQuaternions = interpQuaternions(quaternions, numPoints, method)
-    t = linspace(0, 1, size(quaternions, 1));
-    tDense = linspace(0, 1, numPoints);
-    interpolatedQuaternions = zeros(numPoints, 4);
-    for i = 1:numPoints-1
-        tFraction = (tDense(i) - t(1)) / (t(end) - t(1));
-        idx = find(t <= tDense(i), 1, 'last');
-        if idx < size(quaternions, 1)
-            qStart = quaternions(idx, :);
-            qEnd = quaternions(idx + 1, :);
-            interpolatedQuaternions(i, :) = quatinterp(qStart, qEnd, tFraction, method);
-        else
-            interpolatedQuaternions(i, :) = quaternions(end, :);
-        end
-    end
-    interpolatedQuaternions(end, :) = quaternions(end, [4 2 3 1]); % Ensure the last quaternion is directly assigned
-end
-
