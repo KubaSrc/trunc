@@ -6,7 +6,7 @@ pause_length = 3;
 pulse_length = 0;
 noise_samples = 15;
 movment_time = 2;
-traj_start = 1;
+traj_start = 124;
 anti_slack = true;
 slack_spacing = 2;
 
@@ -29,7 +29,7 @@ cam = videoinput('winvideo', 1);
 set(cam, 'FramesPerTrigger', Inf);
 set(cam, 'ReturnedColorspace', 'rgb')
 cam.FrameGrabInterval = 1;  % Grab one frame every second
-
+w
 % Hardware
 arm = robotArm();
 motor = armMotor();
