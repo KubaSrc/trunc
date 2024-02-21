@@ -3,7 +3,7 @@ from bot import *
 class aux_bot_DNN(aux_bot):
 
     def __init__(self,drive_path = None, pos_path = None, motor_path = None,
-                 train_forward = False, train_inverse = False, normalize=True):
+                 train_forward = False, train_inverse = False, normalize = True):
 
         # Size attributes
         MAX_SEQ_LENGTH = 1

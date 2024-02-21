@@ -244,7 +244,7 @@ class aux_bot():
         fk_net.to(self.device)
         losses = []
         criterion = nn.MSELoss()
-        self.optimizer = optim.Adam(fk_net.parameters(), lr, weight_decay=decay)
+        self.optimizer = optim.AdamW(fk_net.parameters(), lr=lr, weight_decay=decay)
 
         # Aneal learning rate
         if annealing:
