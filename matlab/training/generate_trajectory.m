@@ -5,7 +5,7 @@ point_density = load('./state/point_density.mat').dist_per_point;
 
 %% First trajectory (circle)
 
-export_traj = false;
+export_traj = true;
 
 tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
@@ -124,7 +124,7 @@ zlabel('Z-axis'); % Label for the z-axis
 title('3D Line Plot with Grid'); % Title for the plot
 
 if export_traj
-    save('./inference/triangle_trajectory.mat','wp')
+    save('./inference/line_trajectory.mat','wp')
 end
 
 view([0,0])

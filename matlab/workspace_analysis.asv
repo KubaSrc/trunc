@@ -19,7 +19,7 @@ map = brewermap(9,'Set1');
 
 %% Find point density in data
 
-save_density = false;
+save_density = true;
 
 X_m = reshape(X,100,[]);
 Y_m = reshape(Y,100,[]);
@@ -35,11 +35,11 @@ distances = sum(sqrt(dX_m.^2 + dY_m.^2 + dZ_m.^2),1);
 dist_per_point = 100./mean(distances);
 
 if save_density
-    save('./training/state/point_density.mat','dist_per_point')
+    save('./state/point_density.mat','dist_per_point')
 end
 
 %% Save home pos
-save_home = false;
+save_home = true;
 
 quat_home = quat(1:100:end);
 quat_bar = meanrot(quat_home,1);
@@ -48,7 +48,7 @@ xyz_bar = mean(xyz_home,1);
 pos = [xyz_bar,compact(quat_bar)];
 
 if save_home
-    save('./training/state/home_measured.mat','pos')
+    save('./state/home_measured.mat','pos')
 end
 
 %% Histogram of tilt
