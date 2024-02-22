@@ -77,62 +77,56 @@ class aux_bot():
             return data
 
     class SequenceDataset(Dataset):
-        def __init__(self, data_array, input_range, output_range, sequence_length=5,
-                     shuffle=True, train=False, test=False, split=0.8,inverse=False):
+        def __init__(self, data_array, input_range, output_range, sequence_length=5, shuffle=True, train=False, test=False, split=0.8, inverse=False):
             self.shuffle = shuffle
             self.sequence_length = sequence_length
             self.train = train
             self.test = test
             self.split = split
+            
             if not inverse:
                 self.y = torch.tensor(data_array[:, output_range]).float()
                 self.X = torch.tensor(data_array[:, input_range]).float()
             else:
                 self.y = torch.tensor(data_array[:, input_range]).float()
                 self.X = torch.tensor(data_array[:, output_range]).float()
-            self.N = self.X.shape[0]
 
-            # Data shuffling
-            if shuffle == True:
+            # Assume each sequence is already of fixed length; adjust total number accordingly
+            self.N = len(data_array) // sequence_length
+
+            if shuffle:
                 torch.manual_seed(7)
-                self.idx = torch.randperm(self.N)
+                # Shuffle at the sequence level, not the individual sample level
+                indices = torch.randperm(self.N)
+                self.X = self.X.view(self.N, sequence_length, -1)[indices].view(-1, self.X.size(1))
+                self.y = self.y.view(self.N, sequence_length, -1)[indices].view(-1, self.y.size(1))
 
-            # Handle train-test split
+            # Calculate the number of sequences after the split
+            split_idx = int(self.N * split)
             if self.train:
-                self.N = int(self.N*self.split)
-                if self.shuffle: self.idx = self.idx[0:self.N]
-            if self.test:
-                self.N = int(self.N*(1-self.split))
-                if self.shuffle: self.idx = self.idx[-self.N:]
+                self.X = self.X[:split_idx * sequence_length, :]
+                self.y = self.y[:split_idx * sequence_length, :]
+                self.N = split_idx
+            elif self.test:
+                self.X = self.X[split_idx * sequence_length:, :]
+                self.y = self.y[split_idx * sequence_length:, :]
+                self.N = self.N - split_idx
 
         def __len__(self):
+            # Return the total number of sequences
             return self.N
 
         def __getitem__(self, i):
             assert 0 <= i < self.N, "Index out of bounds for sequence"
 
-            if self.shuffle: i = self.idx[i]
+            # Calculate the actual start and end index for the flat array
+            start_idx = i * self.sequence_length
+            end_idx = start_idx + self.sequence_length
 
-            # Calculate the start index of the block
-            block_num = i // self.sequence_length
-            start_idx = block_num * self.sequence_length
-            end_idx = i
+            x = self.X[start_idx:end_idx, :]
+            y = self.y[start_idx:end_idx, :]
 
-            x = self.X[start_idx : end_idx + 1,:]
-            x_len = end_idx - start_idx + 1
-
-            # If x is shorter than the sequence length, pad with zeros along that dimension
-            if x_len < self.sequence_length:
-                # Calculate the number of rows to pad
-                padding_size = self.sequence_length - x_len
-
-                # Create a zero tensor for padding with the same number of columns as x
-                padding = torch.zeros((padding_size, x.shape[1]), dtype=x.dtype)-1
-
-                # Pad x at the beginning with the padding tensor
-                x = torch.cat((x,padding), dim=0)
-
-            return x, self.y[i]
+            return x, y
 
         def get_all_items(self):
             Xs, Ys = [], []

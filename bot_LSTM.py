@@ -128,31 +128,30 @@ class aux_bot_LSTM(aux_bot):
     #########################
     ## INVERSE NETWORK
     #########################
-    
-    class inverse_net(nn.Module):
-        def __init__(self, inputs=7, hidden_lstm=512, hidden=1024, outputs=9, num_layers=1, dropout=0.1, device=None, linear_depth = None):
-            super().__init__()
         
+    class inverse_net(nn.Module):
+        def __init__(self, inputs=7, hidden_lstm=512, hidden=1024, outputs=9, num_layers=1, dropout=0.1, device=None, linear_depth=None):
+            super().__init__()
+            
             self.device = device
             
             self.lstm = nn.LSTM(
-            input_size=inputs,
-            hidden_size=hidden_lstm,
-            batch_first=True,
-            num_layers=num_layers,
+                input_size=inputs,
+                hidden_size=hidden_lstm,
+                num_layers=num_layers,
+                batch_first=True,
+                dropout=dropout if num_layers > 1 else 0,  # Dropout for LSTM layers (except the last layer)
             )
-        
+            
             self.drop = nn.Dropout(dropout)
-        
-            # Default size
-            if linear_depth == None:
-                self.fc1 = nn.Linear(hidden_lstm,hidden)
-                self.fc2 = nn.Linear(hidden,hidden)
-                self.fc3 = nn.Linear(hidden,outputs)
-        
-            # Explore different sizes
+            
+            # Adjusting for sequence outputs
+            if linear_depth is None:
+                self.fc1 = nn.Linear(hidden_lstm, hidden)
+                self.fc2 = nn.Linear(hidden, hidden)
+                self.fc3 = nn.Linear(hidden, outputs)
             else:
-                self.linear_layers = nn.ModuleList()  # Use nn.ModuleList
+                self.linear_layers = nn.ModuleList()
                 if linear_depth == 1:
                     self.linear_layers.append(nn.Linear(hidden_lstm, outputs))
                 else:
@@ -160,46 +159,99 @@ class aux_bot_LSTM(aux_bot):
                     for _ in range(1, linear_depth - 1):
                         self.linear_layers.append(nn.Linear(hidden, hidden))
                     self.linear_layers.append(nn.Linear(hidden, outputs))
-        
-            self.input_size = inputs
-            self.hidden_size = hidden
-            self.hidden_lstm_size = hidden_lstm
-            self.output_size = outputs
-            self.num_layers = num_layers
-            self.dropout = dropout
-            self.linear_depth = linear_depth
-
-        def forward(self, y):
-            # Calculate lengths based on padding
-            # Assuming padding value is -1; adjust as per your data
-            # Note: This assumes your input features are non-negative or your padding value is unique
-            lengths = (y != -1).any(dim=2).sum(dim=1)
-    
-            # Prepare data for LSTM, considering sequences might have variable lengths
-            # Need to pack sequences before feeding them to LSTM
-            packed_input = pack_padded_sequence(y, lengths.cpu(), batch_first=True, enforce_sorted=False)
-            packed_output, (hn, cn) = self.lstm(packed_input)
-            output, _ = pad_packed_sequence(packed_output, batch_first=True)
-    
-            # Assume we want to use the last relevant output from each sequence
-            # Gather the last output for each sequence
-            idx = (lengths - 1).view(-1, 1).expand(len(lengths), output.size(2))
-            idx = idx.unsqueeze(1).to(self.device)
-            last_outputs = output.gather(1, idx).squeeze(1)
             
-            last_outputs = self.drop(last_outputs)
-    
-            # Pass through linear layers
+        def forward(self, y):
+            # Since sequences are of equal length, we directly pass the input to LSTM
+            lstm_out, (hn, cn) = self.lstm(y)  # lstm_out shape: (batch_size, seq_length, hidden_lstm)
+            
+            # Apply dropout to the outputs of the LSTM
+            lstm_out = self.drop(lstm_out)
+            
+            # Processing entire sequence through linear layers
             if self.linear_depth is None:
-                x = F.relu(self.fc1(last_outputs))
+                # Apply linear layers across the entire sequence
+                x = F.relu(self.fc1(lstm_out))
                 x = F.relu(self.fc2(x))
                 x = self.fc3(x)
             else:
-                x = last_outputs
+                x = lstm_out
                 for layer in self.linear_layers:
                     x = F.relu(layer(x))
-    
+            
+            # No need to select the last output, as we now process the entire sequence
             return x
+    
+    # class inverse_net(nn.Module):
+    #     def __init__(self, inputs=7, hidden_lstm=512, hidden=1024, outputs=9, num_layers=1, dropout=0.1, device=None, linear_depth = None):
+    #         super().__init__()
+        
+    #         self.device = device
+            
+    #         self.lstm = nn.LSTM(
+    #         input_size=inputs,
+    #         hidden_size=hidden_lstm,
+    #         batch_first=True,
+    #         num_layers=num_layers,
+    #         )
+        
+    #         self.drop = nn.Dropout(dropout)
+        
+    #         # Default size
+    #         if linear_depth == None:
+    #             self.fc1 = nn.Linear(hidden_lstm,hidden)
+    #             self.fc2 = nn.Linear(hidden,hidden)
+    #             self.fc3 = nn.Linear(hidden,outputs)
+        
+    #         # Explore different sizes
+    #         else:
+    #             self.linear_layers = nn.ModuleList()  # Use nn.ModuleList
+    #             if linear_depth == 1:
+    #                 self.linear_layers.append(nn.Linear(hidden_lstm, outputs))
+    #             else:
+    #                 self.linear_layers.append(nn.Linear(hidden_lstm, hidden))
+    #                 for _ in range(1, linear_depth - 1):
+    #                     self.linear_layers.append(nn.Linear(hidden, hidden))
+    #                 self.linear_layers.append(nn.Linear(hidden, outputs))
+        
+    #         self.input_size = inputs
+    #         self.hidden_size = hidden
+    #         self.hidden_lstm_size = hidden_lstm
+    #         self.output_size = outputs
+    #         self.num_layers = num_layers
+    #         self.dropout = dropout
+    #         self.linear_depth = linear_depth
+
+    #     def forward(self, y):
+    #         # Calculate lengths based on padding
+    #         # Assuming padding value is -1; adjust as per your data
+    #         # Note: This assumes your input features are non-negative or your padding value is unique
+    #         lengths = (y != -1).any(dim=2).sum(dim=1)
+    
+    #         # Prepare data for LSTM, considering sequences might have variable lengths
+    #         # Need to pack sequences before feeding them to LSTM
+    #         packed_input = pack_padded_sequence(y, lengths.cpu(), batch_first=True, enforce_sorted=False)
+    #         packed_output, (hn, cn) = self.lstm(packed_input)
+    #         output, _ = pad_packed_sequence(packed_output, batch_first=True)
+    
+    #         # Assume we want to use the last relevant output from each sequence
+    #         # Gather the last output for each sequence
+    #         idx = (lengths - 1).view(-1, 1).expand(len(lengths), output.size(2))
+    #         idx = idx.unsqueeze(1).to(self.device)
+    #         last_outputs = output.gather(1, idx).squeeze(1)
+            
+    #         last_outputs = self.drop(last_outputs)
+    
+    #         # Pass through linear layers
+    #         if self.linear_depth is None:
+    #             x = F.relu(self.fc1(last_outputs))
+    #             x = F.relu(self.fc2(x))
+    #             x = self.fc3(x)
+    #         else:
+    #             x = last_outputs
+    #             for layer in self.linear_layers:
+    #                 x = F.relu(layer(x))
+    
+    #         return x
 
 
     # class inverse_net(nn.Module):
