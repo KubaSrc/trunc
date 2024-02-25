@@ -25,16 +25,13 @@ class aux_bot_DNN(aux_bot):
         # Train forward model
         if  train_forward:
             self.fk_net = self.forward_net(hidden=1024,inputs=self.input_size,outputs=self.output_size)
-
-            self.fk_net.load_state_dict(torch.load(drive_path + '/models/DNN_forward_2024_02_02-18_25_58_5.155mm'))
-
             self.train_forward(self.fk_net,self.EPOCHS,self.LEARNING_RATE,self.MOMENTUM,self.WEIGHT_DECAY,annealing=True)
             self.eval_model_forward(self.fk_net,self.fk_train_loss)
 
         # Load forward model instead
         if not train_forward:
             self.fk_net = self.forward_net(hidden=1024)
-            self.fk_net.load_state_dict(torch.load(drive_path + '/models/DNN_forward_2024_02_02-18_25_58_5.155mm'))
+            self.fk_net.load_state_dict(torch.load(drive_path + '/models/DNN_forward_2024_02_02-18_25_58_5.155mm',map_location=self.device))
             self.fk_net.eval()
             print("[aux_bot_DNN] Forward model succesfully loaded")
 
@@ -52,10 +49,10 @@ class aux_bot_DNN(aux_bot):
             self.train_inverse(self.ik_net,self.EPOCHS,self.LEARNING_RATE,self.MOMENTUM,self.WEIGHT_DECAY,annealing=True)
             self.eval_model_inverse(self.ik_net,self.ik_train_loss)
 
-        # Load forward model instead
+        # Load inverse model instead
         if not train_inverse:
             self.ik_net = self.inverse_net(hidden=1600)
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2024_02_04-21_53_52_13.964mm'))
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2024_02_21-16_08_24_10.006mm',map_location=self.device))
             self.ik_net.eval()
             self.ik_net.to(self.device)
             print("[aux_bot_DNN] Inverse model succesfully loaded")

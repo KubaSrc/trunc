@@ -4,7 +4,6 @@ addpath('./util/')
 % Create an instance of the arm and motor
 motor = armMotor();
 arm = robotArm();
-arm.reset_arm()
 
 %% Minimal compression
 
@@ -27,11 +26,11 @@ comp = load('./state/comp.mat').comp;
 
 dr = -60; % limit for rotation
 dr_wrist = -80;
-dl = -60; % limit for extension
+dl = -30; % limit for extension
 
-r_ratio = [1,0,.35];
+r_ratio = [1,1,0];
 % r_ratio_top = [1,0,0];
-r_ratio_top = [1,0,.35];
+r_ratio_top = [1,1,0];
 % r_ratio_top = [0,1,.65];
 
 dl_wrist = r_ratio_top.*dr_wrist;

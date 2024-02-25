@@ -11,8 +11,8 @@ tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
 
 n = 20;
-r = 80;
-z_plane = 60;
+r = 90;
+z_plane = 80;
 theta = linspace(0,2*pi,n).';
 
 x_c = r.*cos(theta);
@@ -36,25 +36,27 @@ if export_traj
     save('./inference/circle_trajectory.mat','wp')
 end
 
-%% Second trajectory (steps)
+%% Second trajectory (triangle)
+
+export_traj = true;
 
 tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
 
 l = 80;
 d = 20;
-z_plane = 60;
+z_plane = 90;
 
 wp_xyz = [0,0,0; % Origin
           0,l,z_plane; % #1 (start)
           0,l,z_plane-d;
           0,l,z_plane; % #1 (end)
-          -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
-          -l*sin(pi/6),-l*cos(pi/6),z_plane-d;
-          -l*sin(pi/6),-l*cos(pi/6),z_plane; % #2 (start)
-          l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (start)
-          l*sin(pi/6),-l*cos(pi/6),z_plane-d;
-          l*sin(pi/6),-l*cos(pi/6),z_plane; % #3 (end)
+          -l*sin(pi/3),-l*cos(pi/3),z_plane; % #2 (start)
+          -l*sin(pi/3),-l*cos(pi/3),z_plane-d;
+          -l*sin(pi/3),-l*cos(pi/3),z_plane; % #2 (start)
+          l*sin(pi/3),-l*cos(pi/3),z_plane; % #3 (start)
+          l*sin(pi/3),-l*cos(pi/3),z_plane-d;
+          l*sin(pi/3),-l*cos(pi/3),z_plane; % #3 (end)
           0,l,z_plane; % #1 (start)
           ];
 
@@ -64,7 +66,15 @@ wp = [wp_xyz,repmat(tool_quat,[n,1])];
 wp(:,1:3) = wp(:,1:3) + home_pos(1:3);
 wp = interp_waypoints(wp,100,"linear");
 
-figure(2); clf; hold on; grid on
+theta = deg2rad(60); % Example angle in degrees converted to radians
+Rz = [cos(theta) -sin(theta) 0;
+      sin(theta) cos(theta) 0;
+      0 0 1];
+
+wp_rot = Rz*wp(:,1:3).';
+wp(:,1:3) = wp_rot.';
+
+figure(2); clf; hold on; grid on; axis equal
 
 plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
 
@@ -80,40 +90,36 @@ end
 
 view([-15,30])
 
-%% Third trajectory (orthongal line)
+%% Third trajectory (steps)
+
+export_traj = true;
 
 tool_0_rot = eye(3);
 tool_0_quat = rotm2quat(tool_0_rot);
 
-tool_1_rot = [cosd(90)  0  sind(90);
-                0         1  0;
-             -sind(90)  0  cosd(90)];
-tool_1_quat = rotm2quat(tool_1_rot);
 
-dx = -20;
-dz = 20;
-z0 = 30;
-x0 = -60;
+dy = -160/3;
+dz = 25;
+z0 = 40;
+y0 = 80;
 
+% First set of waypoints
 wp_xyz = [0,0,0; % Origin
-          x0,0,z0; % #1 (start)
-          x0+dx,0,z0;
-          x0,0,z0; % #1 (start)
-          x0,0,z0+dz; % #2 (start)
-          x0+dx,0,z0+dz;
-          x0,0,z0+dz; % #2 (end)
-          x0,0,z0+2*dz; % #3 (start)
-          x0+dx,0,z0+2*dz;
-          x0,0,z0+2*dz; % #3 (end)
-          ];
+          0,y0,z0;
+          0,y0+dy,z0;
+          0,y0+dy,z0+dz;
+          0,y0+2*dy,z0+dz;
+          0,y0+2*dy,z0+2*dz;
+          0,y0+3*dy,z0+2*dz;]; % #1 (start)
 
 n = length(wp_xyz);
 
-wp = [wp_xyz,repmat(tool_quat,[n,1])];
+wp = [wp_xyz,repmat(tool_0_quat,[n,1])];
 wp(:,1:3) = wp(:,1:3) + home_pos(1:3);
+
 wp = interp_waypoints(wp,100,"linear");
 
-figure(3); clf; hold on; grid on
+figure(3); clf; hold on; grid on; axis equal;
 
 plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
 
@@ -129,8 +135,8 @@ end
 
 view([0,0])
 
-%% Helper functions
 
+%% Helper functions
 
 function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
     % Extract positions and quaternions
@@ -182,4 +188,33 @@ function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
 
     % Combine interpolated positions and quaternions
     interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions(:,[2,3,4,1])];
+end
+
+function plot_triad(x, y, z, q)
+    figure(); clf; hold on; grid on; axis equal;
+    xlabel('X'); ylabel('Y'); zlabel('Z');
+    
+    arrowLength = 20; % Adjust the arrow length as needed
+    headSize = 20;
+        
+
+    for i = 1:length(x)
+        % Convert quaternion to rotation matrix
+        R = quat2rotm(q(i,:));
+        
+        % Origin for the triad
+        origin = [x(i), y(i), z(i)];
+        
+        % Directions for the triad arrows, transformed by R
+        xDir = R(:,1)';
+        yDir = R(:,2)';
+        zDir = R(:,3)';
+        
+        % Plot arrows
+        quiver3(origin(1), origin(2), origin(3), xDir(1), xDir(2), xDir(3), arrowLength, 'r', 'LineWidth', 2, 'MaxHeadSize', headSize);
+        quiver3(origin(1), origin(2), origin(3), yDir(1), yDir(2), yDir(3), arrowLength, 'g', 'LineWidth', 2, 'MaxHeadSize', headSize);
+        quiver3(origin(1), origin(2), origin(3), zDir(1), zDir(2), zDir(3), arrowLength, 'b', 'LineWidth', 2, 'MaxHeadSize', headSize);
+    end
+    
+    hold off;
 end

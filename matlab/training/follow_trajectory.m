@@ -5,9 +5,9 @@ addpath('./util')
 pause_length = 0.5;
 pulse_length = 0;
 noise_samples = 15;
-model_type = 'LSTM';
+model_type = 'DNN';
 trajectory = 'circle';
-record = true;
+record = false;
 trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
 inputs_name = ['./inference/',model_type,'_',trajectory,'_trajectory_inputs.mat'];
 
@@ -18,6 +18,7 @@ currentDateTime = datetime('now');
 dirName = datestr(currentDateTime, '_yyyy_mm_dd_HH_MM_SS');
 save_path = ['./experiments/',trajectory, dirName];
 photo_path = [save_path,'/pictures'];
+
 if record
     mkdir(save_path);
     mkdir(photo_path);
@@ -36,9 +37,10 @@ l_delta = load(inputs_name).output;
 num_points=size(l_delta,1);
 comp = load('./state/comp.mat').comp;
 
-copyfile(trajectory_name, save_path);
-copyfile(inputs_name, save_path);
-
+if record
+    copyfile(trajectory_name, save_path);
+    copyfile(inputs_name, save_path);
+end
 %% Loop and collect data
 
 % Initialize output
@@ -56,7 +58,7 @@ for p = 1:num_points
     fprintf('========================\n');
     
     % Set arm to new pose
-    arm.set_pos(comp+l_delta(p,:))
+    arm.set_pos(double(comp+l_delta(p,:)))
     
     if record
 
@@ -75,13 +77,15 @@ for p = 1:num_points
         % Write to output
         output(p+1,1:2) = {datetime,p};
         output(p+1,3:9) = num2cell(mean(S,1));
-    
-        % Take a photo
-        img = getsnapshot(cam);
-        % Save the image to disk.
-        filename = sprintf('/waypoint_%d.jpg', p);
-        im_path = [photo_path,filename];
-        imwrite(img, im_path);
+        
+        if record
+            % Take a photo
+            img = getsnapshot(cam);
+            % Save the image to disk.
+            filename = sprintf('/waypoint_%d.jpg', p);
+            im_path = [photo_path,filename];
+            imwrite(img, im_path);
+        end
     end
 
 end

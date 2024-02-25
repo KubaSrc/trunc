@@ -66,7 +66,7 @@ class aux_bot_LSTM(aux_bot):
                                            linear_depth=3)
             # Bootstrap off previous run
             if bootstrap:
-                self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_15-14_37_57_8.007mm',map_location=self.device))
+                self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_21-16_03_53_8.544mm',map_location=self.device))
 
             # Train and evaluate
             self.train_inverse(self.ik_net,self.EPOCHS,self.LEARNING_RATE,self.MOMENTUM,self.WEIGHT_DECAY,annealing=True)
@@ -75,7 +75,7 @@ class aux_bot_LSTM(aux_bot):
         # Load inverse model instead
         if not train_inverse:
             self.ik_net = self.inverse_net(hidden_lstm=512, hidden=1552,device=self.device,linear_depth=3)
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_15-14_37_57_8.007mm',map_location=self.device))
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/LSTM_inverse_2024_02_21-16_03_53_8.544mm',map_location=self.device))
             self.ik_net.eval()
             self.ik_net.to(self.device)
             print("[aux_bot_LSTM] Inverse model succesfully loaded")
