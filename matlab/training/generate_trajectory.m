@@ -5,7 +5,7 @@ point_density = load('./state/point_density.mat').dist_per_point;
 
 %% First trajectory (circle)
 
-export_traj = true;
+export_traj = false;
 
 tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
@@ -38,7 +38,7 @@ end
 
 %% Second trajectory (triangle)
 
-export_traj = true;
+export_traj = false;
 
 tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
@@ -63,7 +63,6 @@ wp_xyz = [0,0,0; % Origin
 n = length(wp_xyz);
 
 wp = [wp_xyz,repmat(tool_quat,[n,1])];
-wp(:,1:3) = wp(:,1:3) + home_pos(1:3);
 wp = interp_waypoints(wp,100,"linear");
 
 theta = deg2rad(60); % Example angle in degrees converted to radians
@@ -73,6 +72,7 @@ Rz = [cos(theta) -sin(theta) 0;
 
 wp_rot = Rz*wp(:,1:3).';
 wp(:,1:3) = wp_rot.';
+wp(:,1:3) = wp(:,1:3) + home_pos(1:3);
 
 figure(2); clf; hold on; grid on; axis equal
 
