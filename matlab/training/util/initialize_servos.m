@@ -11,7 +11,7 @@ function initialize_servos(port, channels, pause_length,home_position)
 
     i=1;
     for channel = channels 
-        set_servo_speed(port, channel, 1);
+        set_servo_speed(port, channel, 2);
         pause(.1);        
         set_servo_acceleration(port, channel, 0);
         pause(.1);

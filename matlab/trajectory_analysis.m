@@ -54,7 +54,7 @@ ax.LineWidth = 1.5;
 %% Plotting out trajectory runs (triangle)
 
 % DNN
-exp_DNN = 'triangle_2024_02_22_15_48_39';
+exp_DNN = 'triangle_2024_02_26_10_06_17';
 motor_inputs = load(['./training/experiments/',exp_DNN,'/DNN_triangle_trajectory_inputs.mat']).output;
 wp_DNN = load(['./training/experiments/',exp_DNN,'/triangle_trajectory.mat']).wp;
 T_DNN = readtable(['./training/experiments/',exp_DNN,'/positions.csv']);

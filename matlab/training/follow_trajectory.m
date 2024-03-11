@@ -2,14 +2,21 @@ clear all; close all; clc
 addpath('./util')
 
 % Test variables
-pause_length = 0.5;
+pause_length = 0.5; 
 pulse_length = 0;
 noise_samples = 15;
 model_type = 'DNN';
-trajectory = 'circle';
+trajectory = 'valve';
 record = false;
+demo = true;
+
+
+pause_idx = 1;
 trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
 inputs_name = ['./inference/',model_type,'_',trajectory,'_trajectory_inputs.mat'];
+pause_name = ['./inference/',trajectory,'_pause.mat'];
+motor_name = ['./inference/',trajectory,'_motor.mat'];
+save_points_name = ['./inference/',trajectory,'_p_'];
 
 %% Initial setup
 
@@ -30,12 +37,18 @@ set(cam, 'FramesPerTrigger', Inf);
 set(cam, 'ReturnedColorspace', 'rgb')
 cam.FrameGrabInterval = 1;  % Grab one frame every second
 
-% Hardware
+% Hardware initialization
 arm = robotArm();
 motor = armMotor();
+
+% Loading trajectory infox
 l_delta = load(inputs_name).output;
 num_points=size(l_delta,1);
 comp = load('./state/comp.mat').comp;
+if demo
+    pause_mat = load(pause_name).pause_mat;
+    motor_mat = load(motor_name).motor_mat;
+end
 
 if record
     copyfile(trajectory_name, save_path);
@@ -57,9 +70,26 @@ for p = 1:num_points
     fprintf('Waypoint: %d/%d \n', p, num_points);
     fprintf('========================\n');
     
+    if demo && pause_mat(p) == -1
+        input('Press enter to keep running')
+    end
+
     % Set arm to new pose
     arm.set_pos(double(comp+l_delta(p,:)))
     
+    % Check for pause at waypoint
+    if demo && (pause_mat(p) ~= -1 && pause_mat(p) ~= 0)
+        pause(pause_mat(p))
+    end
+
+    % Check for motor pulse
+    if demo && (motor_mat(p) > 0)
+        pause(0.25)
+        disp(motor_mat(p))
+        motor.pulse(motor_mat(p))
+        pause(0.25)
+    end
+
     if record
 
         % Pause for equillibirum
@@ -89,9 +119,6 @@ for p = 1:num_points
     end
 
 end
-
-% Reset
-arm.reset_arm();
 
 % Clean up.
 delete(cam)

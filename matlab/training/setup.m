@@ -3,6 +3,7 @@ addpath('./util/')
 
 % Create an instance of the arm and motor
 motor = armMotor();
+
 arm = robotArm();
 % arm.reset_arm()
  
@@ -21,10 +22,10 @@ end
 
 %% Verify compression
 
-set_comp = true;
+set_comp = false;
 
 home = load('./state/home').home;
-delta_l = -15;
+delta_l = -80;
 comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
 comp = home + comp_delta;
 
@@ -58,6 +59,7 @@ motor.pulse(1)
 
 tool = arm.get_pose();
 disp(tool)
+pos = [tool.x*1000,tool.y*1000,tool.z*1000,tool.qw,tool.qx,tool.qy,tool.qz];
 
 %% Turn off motors
 
