@@ -64,7 +64,7 @@ n = 100;
 plot_triad(X(1:n),Y(1:n),Z(1:n),quat_new(1:n))
 
 %% Poses that are close to normal to the plane
-pose_slice = pose_dist > 65;
+pose_slice = (pose_dist > 70);
 
 plot_triad(X(pose_slice),Y(pose_slice),Z(pose_slice),quat(pose_slice))
 

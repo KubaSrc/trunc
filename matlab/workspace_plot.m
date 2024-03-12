@@ -32,6 +32,7 @@ exportgraphics(gcf,'../figures/workspace/x-y.emf','ContentType', 'vector');
 
 % Second tile for XZ plot
 figure(3); hold on; axis equal; grid on;
+
 k = boundary(X, Z);
 fill(X(k), Z(k), 'k', 'FaceColor', '#696969', 'FaceAlpha', 0.5, 'EdgeColor', '#696969','LineWidth',1.5);
 s=scatter(X, Z, 'filled', 'MarkerFaceColor', '#509C49','MarkerEdgeColor','k','LineWidth',1);
