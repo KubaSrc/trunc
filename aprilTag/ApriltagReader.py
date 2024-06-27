@@ -3,6 +3,13 @@ import numpy as np
 import apriltag as april
 from scipy.spatial.transform import Rotation as R
 
+
+#write script to take images on demand and process the script
+#find out how long it takes to do so
+#Look into calibrating the cameras
+#undistort the images
+
+
 ########
 #MODIFY THE NAME FOR CAMERAL2 TO CAMERAL
 ########
@@ -13,6 +20,8 @@ options = april.DetectorOptions(families='tag16h5')
 detector = april.Detector(options)
 
 processed = []
+finalP =[]
+finalQ =[]
 
 for file in files:
     #load image into program
@@ -23,7 +32,7 @@ for file in files:
     # imageR = cv2.imread('images/CameraR.jpg', cv2.IMREAD_GRAYSCALE)
 
     # Blur the image for better edge detection
-    img_blur = cv2.GaussianBlur(image, (7, 7), 3)
+    img_blur = cv2.GaussianBlur(image, (7, 7), 0)
     #old code vvv
     # img_blurL2 = cv2.GaussianBlur(imageL2, (7, 7), 3)
     # img_blurR = cv2.GaussianBlur(imageR, (7, 7), 3)
@@ -32,8 +41,8 @@ for file in files:
 
     # # Display the original and edge-detected images
     #cv2.imshow('Original Image', imageL2)
-    cv2.imshow('img_blurL2', img_blur)
-    cv2.waitKey(0)  # Wait for a key press to close the windows
+    # cv2.imshow('img_blurL2', img_blur)
+    # cv2.waitKey(0)  # Wait for a key press to close the windows
 
     #detect any apriltags
     processed.append(detector.detect(img_blur))
@@ -57,6 +66,8 @@ for tags in processed:
         pose_z = tag_size  # Assuming the tag is at a fixed height (e.g., on a flat surface)
 
         print(f"Tag ID {tag.tag_id}: Position (X, Y, Z) = ({pose_x:.2f}, {pose_y:.2f}, {pose_z:.2f})")
+        ##Debugging
+        #finalP.append(f"Tag ID {tag.tag_id}: Position (X, Y, Z) = ({pose_x:.2f}, {pose_y:.2f}, {pose_z:.2f})")
 
         #retrieve the homography
         hom = tag.homography
@@ -74,6 +85,12 @@ for tags in processed:
         quaternion = rotation.as_quat()
 
         print(f"Orientation {tag.tag_id}: {quaternion}")
+
+        ##Debugging
+        #finalQ.append(f"Orientation {tag.tag_id}: {quaternion}")
+
+#print(finalP)
+#print(finalQ)
 
 
 
