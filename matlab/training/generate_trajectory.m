@@ -362,7 +362,7 @@ end
 
 %% Valve trajectory
 
-export_traj = true;
+export_traj = false;
 
 tool_rot = eye(3);
 tool_quat = rotm2quat(tool_rot);
@@ -415,22 +415,10 @@ motor_mat_1 = zeros([1,size(wp_1,1)]);
 pause_mat_1(end) = 1;
 motor_mat_1(end) = 5.6;
 
-wp_2 = [p_valve;
-        p_valve + [0,-50,0];
-        0,0,0];
 
-n_2 = size(wp_2,1);
-wp_2 = [wp_2,[end_quat;end_quat;tool_quat]];
-wp_2 = interp_waypoints(wp_2,n_points,"cubic");
-% Define pause and motor mats
-pause_mat_2 = zeros([1,size(wp_2,1)]);
-motor_mat_2 = zeros([1,size(wp_2,1)]);
-pause_mat_2(1) = 2;
-motor_mat_2(end) = 0;
-
-wp = [wp_1;wp_2];
-pause_mat = [pause_mat_1,pause_mat_2];
-motor_mat = [motor_mat_1,motor_mat_2];
+wp = [wp_1];
+pause_mat = [pause_mat_1];
+motor_mat = [motor_mat_1];
 
 wp(:,1:3) = wp(:,1:3)+home_pos(1:3);
 

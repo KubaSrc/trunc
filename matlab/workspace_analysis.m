@@ -64,9 +64,51 @@ n = 100;
 plot_triad(X(1:n),Y(1:n),Z(1:n),quat_new(1:n))
 
 %% Poses that are close to normal to the plane
+% pose_slice = (pose_dist < 7.5);
+% pose_slice = (pose_dist < 60 & pose_dist > 30);
 pose_slice = (pose_dist > 70);
 
-plot_triad(X(pose_slice),Y(pose_slice),Z(pose_slice),quat(pose_slice))
+% fig sizes and scale factor
+fig_w = 300; fig_h = 300; fig_s = 3;
+
+% fonts
+ax_font_size = 5*fig_s;
+legend_font_size = 5*fig_s;
+set(0,'DefaultTextFontname', 'CMU Sans Serif' )
+set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
+
+% colors
+map = brewermap(9,'Set1');
+
+home_pos = load('./training/state/home_measured.mat').pos;
+
+figure(1); clf; hold on; box on; grid on; axis equal;
+
+% figure formatting
+set(gcf,'color','w');
+set(gcf, 'Units', 'inches');
+width = 1.25;
+height = 1;
+set(gcf, 'Position', [0, 0, width*fig_s, height*fig_s]);
+% axis formatting
+set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
+
+xlim([-375,375])
+ylim([-375,375])
+zlim([-5,300])
+
+scatter3(X(pose_slice)-home_pos(1),Y(pose_slice)-home_pos(2),Z(pose_slice)-home_pos(3),[],"filled",'MarkerFaceColor',map(3,:),'MarkerEdgeColor','k','lineWidth',1)
+view(0,90)
+
+exportgraphics(gcf,'../figures/workspace/tilt_xy.png','Resolution', 300);
+
+view(0,0)
+
+width = 1.05;
+height = 1;
+set(gcf, 'Position', [0, 0, width*fig_s, height*fig_s]);
+
+exportgraphics(gcf,'../figures/workspace/tilt_zx.png','Resolution', 300);
 
 %% Helper functions
 
@@ -139,10 +181,27 @@ q_new = quaternion(q_new);
 end
 
 function plot_triad(x, y, z, q)
-    figure(); clf; hold on; grid on; axis equal;
-    xlabel('X'); ylabel('Y'); zlabel('Z');
+    % fig sizes and scale factor
+    fig_w = 300; fig_h = 300; fig_s = 3;
     
-    arrowLength = 20; % Adjust the arrow length as needed
+    % fonts
+    ax_font_size = 5*fig_s;
+    legend_font_size = 5*fig_s;
+    set(0,'DefaultTextFontname', 'CMU Sans Serif' )
+    set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
+    
+    % colors
+    map = brewermap(9,'Set1');
+
+    home_pos = load('./training/state/home_measured.mat').pos;
+
+    x = x-home_pos(1);
+    y = y-home_pos(2);
+    z = z-home_pos(3);
+
+    figure(1); clf; hold on; box on; grid on; axis equal;
+    
+    arrowLength = 40; % Adjust the arrow length as needed
     headSize = 20;
         
 
@@ -159,10 +218,25 @@ function plot_triad(x, y, z, q)
         zDir = R(:,3)';
         
         % Plot arrows
-        quiver3(origin(1), origin(2), origin(3), xDir(1), xDir(2), xDir(3), arrowLength, 'r', 'LineWidth', 2, 'MaxHeadSize', headSize);
-        quiver3(origin(1), origin(2), origin(3), yDir(1), yDir(2), yDir(3), arrowLength, 'g', 'LineWidth', 2, 'MaxHeadSize', headSize);
-        quiver3(origin(1), origin(2), origin(3), zDir(1), zDir(2), zDir(3), arrowLength, 'b', 'LineWidth', 2, 'MaxHeadSize', headSize);
+        quiver3(origin(1), origin(2), origin(3), xDir(1), xDir(2), xDir(3), arrowLength, 'r', 'LineWidth', 1, 'MaxHeadSize', headSize);
+        quiver3(origin(1), origin(2), origin(3), yDir(1), yDir(2), yDir(3), arrowLength, 'g', 'LineWidth', 1, 'MaxHeadSize', headSize);
+        quiver3(origin(1), origin(2), origin(3), zDir(1), zDir(2), zDir(3), arrowLength, 'b', 'LineWidth', 1, 'MaxHeadSize', headSize);
     end
     
     hold off;
+
+    % figure formatting
+    set(gcf,'color','w');
+    set(gcf, 'Units', 'inches');
+    width = 1.25;
+    height = 1;
+    set(gcf, 'Position', [0, 0, width*fig_s, height*fig_s]);
+    xlim([-325,325])
+    ylim([-325,325])
+    zlim([-5,275])
+    % axis formatting
+    set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
+
+    view(0,90)
+    
 end
