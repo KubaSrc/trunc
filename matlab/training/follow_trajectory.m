@@ -6,10 +6,9 @@ pause_length = 0.5;
 pulse_length = 0;
 noise_samples = 15;
 model_type = 'DNN';
-trajectory = 'valve';
-record = false;
-demo = true;
-
+trajectory = 'circle';
+record = true;
+demo = false;
 
 pause_idx = 1;
 trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
@@ -123,6 +122,9 @@ end
 % Clean up.
 delete(cam)
 clear cam
+
+arm.reset_arm();
+
 
 % Save output file
 if record
