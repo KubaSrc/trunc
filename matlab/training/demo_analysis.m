@@ -9,12 +9,12 @@ home_pos = load('./state/home_measured.mat').pos;
 lw = 2;
 ms = 8;
 
-%% Plotting out trajectory runs (circle)
+%% Plotting out trajectory runs
 
 % DNN
-exp_DNN = 'circle_2024_08_02_13_46_25';
-motor_inputs = load(['./experiments/',exp_DNN,'/DNN_circle_trajectory_inputs.mat']).output;
-wp_DNN = load(['./experiments/',exp_DNN,'/circle_trajectory.mat']).wp;
+exp_DNN = 'triangle_2024_08_05_10_57_13';
+motor_inputs = load(['./experiments/',exp_DNN,'/DNN_triangle_trajectory_inputs_comp.mat']).output;
+wp_DNN = load(['./experiments/',exp_DNN,'/triangle_trajectory.mat']).wp;
 T_DNN = readtable(['./experiments/',exp_DNN,'/positions.csv']);
 T_DNN.x_end_avg = 1000.*(T_DNN.x_end_avg);
 T_DNN.y_end_avg = 1000.*(T_DNN.y_end_avg);
@@ -73,3 +73,10 @@ plot(-(wp_DNN(:,2)-home_pos(2)),wp_DNN(:,3)-home_pos(3),'-.','Color','k','LineWi
 ax = gca;
 ax.FontSize = 14;
 ax.LineWidth = 1.5;
+
+%%
+e = sqrt((T_DNN.x_end_avg-(wp_DNN(:,1)-home_pos(1))).^2 + (T_DNN.y_end_avg-(wp_DNN(:,2)-home_pos(2))).^2 + (T_DNN.z_end_avg-(wp_DNN(:,3)-home_pos(3))).^2);
+
+figure(3);
+hist(e);
+mean(e)

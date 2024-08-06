@@ -583,11 +583,21 @@ class aux_bot():
             return -validation
 
     # Run inverse prediction
-    def inverse_prediction(self,input_path=None,output_path=None):
+    def inverse_prediction(self,input_path=None,output_path=None,comp=False,comp_path=None):
         with torch.no_grad():
 
             # Load in motor data
             pos_data = scipy.io.loadmat(self.drive_path + input_path)['wp']
+
+            print(pos_data[0:3,0:3])
+
+            if comp and comp_path != None:
+                print(self.drive_path + comp_path)
+                s = scipy.io.loadmat(self.drive_path + comp_path)['s']
+                # Scale the deltas about the origin
+                pos_data[:,0:3] = pos_data[0,0:3] +  s*(pos_data[:,0:3]-pos_data[0,0:3])
+
+            print(pos_data[0:3,0:3])
 
             # We initialize pos to zero. Just need something for the sequence loader to return.
             motor_data = np.zeros((pos_data.shape[0],9))

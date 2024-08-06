@@ -16,21 +16,33 @@ T_DNN.x_end_avg = 1000.*(T_DNN.x_end_avg);
 T_DNN.y_end_avg = 1000.*(T_DNN.y_end_avg);
 T_DNN.z_end_avg = 1000.*(T_DNN.z_end_avg);
 
-dX = home_pos(1:3) - [T_DNN.x_end_avg(1),T_DNN.x_end_avg(2),T_DNN.x_end_avg(3)];
-
-% Normalization
-wp_DNN(:,1) = wp_DNN(:,1) - wp_DNN(1,1);
-wp_DNN(:,2) = wp_DNN(:,2) - wp_DNN(1,2);
-wp_DNN(:,3) = wp_DNN(:,3) - wp_DNN(1,3);
-
+dX = home_pos(1:3) - [T_DNN.x_end_avg(1),T_DNN.y_end_avg(2),T_DNN.z_end_avg(3)];
 
 figure(1); clf; hold on; axis equal
 plot3(T_DNN.x_end_avg,T_DNN.y_end_avg,T_DNN.z_end_avg)
 plot3(wp_DNN(:,1),wp_DNN(:,2),wp_DNN(:,3))
 
 
+figure(1); clf; hold on; axis equal
+plot3(T_DNN.x_end_avg,T_DNN.y_end_avg,T_DNN.z_end_avg)
+plot3(wp_DNN(:,1),wp_DNN(:,2),wp_DNN(:,3))
+
+% Normalization
+wp_DNN(:,1) = wp_DNN(:,1) - wp_DNN(1,1);
+wp_DNN(:,2) = wp_DNN(:,2) - wp_DNN(1,2);
+wp_DNN(:,3) = wp_DNN(:,3) - wp_DNN(1,3);
+
+T_DNN.x_end_avg = T_DNN.x_end_avg-T_DNN.x_end_avg(1);
+T_DNN.y_end_avg = T_DNN.y_end_avg-T_DNN.y_end_avg(1);
+T_DNN.z_end_avg = T_DNN.z_end_avg-T_DNN.z_end_avg(1);
+% 
+% figure(1); clf; hold on; axis equal
+% plot3(T_DNN.x_end_avg,T_DNN.y_end_avg,T_DNN.z_end_avg)
+% plot3(wp_DNN(:,1),wp_DNN(:,2),wp_DNN(:,3))
+
+
 %% Minimize the scaling difference
-s_lower = 1;
+s_lower = 0;
 s_upper = 2;
 
 % Create an anonymous function that captures a and b
@@ -38,7 +50,21 @@ anonymous_obj_fun = @(s) obj_fun(s, T_DNN, wp_DNN);
 
 s = fminbnd(anonymous_obj_fun,s_lower,s_upper);
 
+fileName = datestr(datetime('now'), '_yyyy_mm_dd_HH_MM_SS');
+
+save(['./calibration/cal',fileName,'.mat'],"s","dX")
+
+figure(2); clf; hold on; axis equal
+plot3(s.*T_DNN.x_end_avg,s.*T_DNN.y_end_avg,s.*T_DNN.z_end_avg)
+plot3(wp_DNN(:,1),wp_DNN(:,2),wp_DNN(:,3))
+
+e = sqrt((s.*T_DNN.x_end_avg-wp_DNN(:,1)).^2 + (s.*T_DNN.y_end_avg-wp_DNN(:,2)).^2 + (s.*T_DNN.z_end_avg-wp_DNN(:,3)).^2);
+
+figure(3);
+hist(e);
+mean(e)
+
 function e = obj_fun(s,T_DNN,wp_DNN)
-    e = sum(sqrt((s.*T_DNN.x_end_avg-wp_DNN(:,1)).^2 + (s.*T_DNN.y_end_avg-wp_DNN(:,2)).^2 + (T_DNN.z_end_avg-wp_DNN(:,3)).^2));
+    e = sum(sqrt((s.*T_DNN.x_end_avg-wp_DNN(:,1)).^2 + (s.*T_DNN.y_end_avg-wp_DNN(:,2)).^2 + (s.*T_DNN.z_end_avg-wp_DNN(:,3)).^2));
 end
 

@@ -1,5 +1,5 @@
 clear all; close all; clc
-addpath('./util')
+addpath('../teaching/util')
 
 %% Initial setup
 
