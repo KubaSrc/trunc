@@ -36,11 +36,12 @@ classdef robotArm
         % Method to set the position
         function set_pos(obj, motor_pos)
             
-            if min(motor_pos) < obj.min_motor || max(motor_pos) > obj.max_motor
-                disp('Motor value out of safe bounds!!!')
-                disp(min(motor_pos))
-                disp(max(motor_pos))
-                res = input();
+            if min(motor_pos) < obj.min_motor - eps
+                error('Motor lower bound exceeded! Sent: %.2f Bound: %.3f', min(motor_pos), obj.min_motor);
+
+            elseif max(motor_pos) > obj.max_motor + eps
+                error('Motor upper bound exceeded! Sent: %.2f Bound: %.3f', max(motor_pos), obj.max_motor);
+
             else
                 final_pos = zeros(1,8);
                 current_pos = zeros(1,8);

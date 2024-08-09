@@ -17,3 +17,20 @@ comp: compressed lengths for the arm (home + comp_delta)
 ## Ordered
 
 ## Unordered
+
+
+# Teaching
+
+## program_robot
+
+Uses keyboard inputs to record a set of waypoints that are compiled into a *positions.csv* file.
+
+## program2path
+
+Takes a recorded set of waypoints $(X,Q) \in \mathbb{R}^n$ and generates an interpolated (linear or cubic) trajectory $(X,Q) \in \mathbb{R}^m$. 
+
+## teach_analysis
+
+Compares a set of input waypoints to the measured waypoints infered from the model. 
+
+## mocap_analysis

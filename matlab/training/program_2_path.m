@@ -1,7 +1,7 @@
 close all; clc; clear all;
 
-home_pos = load('./state/home_measured.mat').pos;
-point_density = load('./state/point_density.mat').dist_per_point;
+home_pos = load('../state/home_measured.mat').pos;
+point_density = load('../state/point_density.mat').dist_per_point;
 
 %% Convert motion to trajectory
 
@@ -9,7 +9,7 @@ export_traj = true;
 pause_length = 1; % Pause before motor actuation
 n_points = 100;
 
-record_path = './record/path_2024_08_05_11_49_47';
+record_path = './path_2024_08_05_11_49_47';
 
 wp_T = readtable([record_path,'/positions.csv']);
 wp = table2array([wp_T(:,3:5),wp_T(:,9),wp_T(:,6:8)]); % Change to qw qx qy qz

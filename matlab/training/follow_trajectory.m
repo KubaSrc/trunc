@@ -11,10 +11,11 @@ record = true;
 demo = false;
 active_pause = false;
 active_motor = false;
+cam_idx = 2;
 
 % Switch to programmed path
 programed = true;
-programmed_path = './record/path_2024_08_05_11_49_47';
+programmed_path = './record/mocap/8-7-2024';
 
 if ~ programed
     trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
@@ -45,13 +46,15 @@ if record
 end
 
 % Camera setup
-cam = videoinput('winvideo', 1);
+cam = videoinput('winvideo', cam_idx);
 set(cam, 'FramesPerTrigger', Inf);
 set(cam, 'ReturnedColorspace', 'rgb')
 cam.FrameGrabInterval = 1;  % Grab one frame every second
 
 % Hardware initialization
 arm = robotArm();
+arm.min_motor = -250;
+arm.max_motor = 150;
 motor = armMotor();
 
 % Loading trajectory info
@@ -88,7 +91,15 @@ for p = 1:num_points
     end
 
     % Set arm to new pose
-    arm.set_pos(double(comp+l_delta(p,:)))
+    arm_pos = double(comp+l_delta(p,:));
+    % Prevents the arm from letting too much slack out
+    if max(arm_pos) > arm.max_motor
+        motor_slice = arm_pos > arm.max_motor;
+        disp("Clipping l_delta.")
+        l_delta(p,motor_slice) = l_delta(p,motor_slice) - (arm_pos(motor_slice)-arm.max_motor);
+        arm_pos = double(comp+l_delta(p,:));
+    end
+    arm.set_pos(arm_pos)
     
     % Check for pause at waypoint
     if demo && active_pause && (pause_mat(p) ~= -1 && pause_mat(p) ~= 0)

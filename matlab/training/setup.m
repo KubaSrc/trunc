@@ -5,7 +5,7 @@ addpath('./util/')
 motor = armMotor();
 
 arm = robotArm();
-% arm.reset_arm()
+arm.reset_arm()
  
 %% Find home position
 
@@ -25,7 +25,7 @@ end
 set_comp = false;
 
 home = load('./state/home').home;
-delta_l = -80;
+delta_l = -70;
 comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
 comp = home + comp_delta;
 
