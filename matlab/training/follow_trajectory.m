@@ -6,7 +6,7 @@ pause_length = 0.5;
 pulse_length = 0;
 noise_samples = 15;
 model_type = 'DNN';
-trajectory = 'triangle';
+trajectory = 'circle';
 record = true;
 demo = false;
 active_pause = false;
@@ -15,7 +15,7 @@ cam_idx = 2;
 
 % Switch to programmed path
 programed = true;
-programmed_path = './record/mocap/8-7-2024';
+programmed_path = './record/mocap/8-9-2024';
 
 if ~ programed
     trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];

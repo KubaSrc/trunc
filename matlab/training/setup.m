@@ -5,7 +5,7 @@ addpath('./util/')
 motor = armMotor();
 
 arm = robotArm();
-arm.reset_arm()
+% arm.reset_arm()
  
 %% Find home position
 

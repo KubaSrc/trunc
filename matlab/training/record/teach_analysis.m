@@ -4,14 +4,14 @@ addpath('./util')
 close all; clear all; clc;
 warning('off', 'all');
 
-home_pos = load('./state/home_measured.mat').pos;
+home_pos = load('../state/home_measured.mat').pos;
 
 lw = 2;
 ms = 8;
 
 %% Plotting out trajectory runs
 
-record_path = './record/path_2024_08_05_11_49_47';
+record_path = './path_2024_08_09_15_37_37';
 motor_inputs = load([record_path,'/DNN_trajectory_inputs.mat']).output;
 wp = load([record_path,'/trajectory.mat']).wp;
 T = readtable([record_path,'/data/positions.csv']);

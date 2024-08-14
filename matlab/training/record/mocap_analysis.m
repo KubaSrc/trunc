@@ -10,9 +10,11 @@ ms = 8;
 
 %% Plotting out trajectory runs
 
-dir_path = './mocap/8-7-2024/';
+dir_path = './mocap/8-9-2024/';
 mocap_path = [dir_path,'mocap_take'];
 export_wp = true;
+
+ds = 30;
 
 % Human recorded data
 name = 'RigidBody';
@@ -29,7 +31,7 @@ v_names = T.Properties.VariableNames;
 T_home = array2table([home_pos(1:3),home_pos(5:7),home_pos(4)],'VariableNames',v_names);
 
 T = batch_transform(T_home,T);
-T = T(1:50:end,:);
+T = T(1:ds:end,:);
 n=size(T,1);
 
 if export_wp

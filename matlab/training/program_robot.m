@@ -21,7 +21,7 @@ noise_samples = 15;
 
 % Initialize output
 output = cell2table([{""},num2cell(zeros(1,9))],'VariableNames',{'date and time','p',...
-    'x_end_avg','y_end_avg','z_end_avg','qx_end_avg','qy_end_avg','qz_end_avg','qw_end_avg','actuation'});
+    'x_end_avg','y_end_avg','z_end_avg','qx_end_avg','qy_end_avg','qz_end_avg','qw_end_avg'});
 
 fprintf('Collecting\n');
    
