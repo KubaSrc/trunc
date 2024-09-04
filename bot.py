@@ -42,6 +42,8 @@ class aux_bot():
 
         # Upload data as fixed length trajectories instead of single points
         self.upload_data()
+        home_pos = scipy.io.loadmat(self.drive_path+'/matlab/training/state/home_measured.mat')
+        self.home_pos = home_pos['pos'][0]
 
 
     ############################
@@ -138,6 +140,8 @@ class aux_bot():
 
     # Uploads training data
     def upload_data(self):
+
+        print(self.drive_path + self.pos_path)
 
         if self.motor_path != None:
             # Position data
@@ -581,6 +585,7 @@ class aux_bot():
             validation,_,_ = self.test_inverse(self.optima_net,data="test")
 
             return -validation
+    
 
     # Run inverse prediction
     def inverse_prediction(self,input_path=None,output_path=None,comp=False,comp_path=None):
@@ -629,6 +634,7 @@ class aux_bot():
             X = self.denormalize_data(X.numpy(),"end_full")
             Y_pred = Y_pred.cpu()
             Y_pred = self.denormalize_data(Y_pred.numpy(),"motor")
+
             y = self.denormalize_data(y.numpy(),"motor")
 
             Y_actual = self.data[0,self.motor_slice]
@@ -639,3 +645,43 @@ class aux_bot():
 
             savemat(self.drive_path + output_path,{"output": Y_pred})
 
+    # Run inverse prediction
+    def direct_inverse_prediction(self,pos_data,comp=False,comp_path=None):
+        with torch.no_grad():
+
+            pos_data = np.array([pos_data])
+
+            if comp and comp_path != None:
+                s = scipy.io.loadmat(self.drive_path + comp_path)['s']
+                # Scale the deltas about the origin
+                pos_data[0,0:3] = pos_data[0,0:3] +  s*(pos_data[0,0:3]-self.home_pos[0:3])
+
+            # We initialize pos to zero. Just need something for the sequence loader to return.
+            motor_data = np.zeros((1,9))
+
+
+            data = np.hstack((motor_data,pos_data))
+            data = self.normalize_data(data)
+
+            # Create a sequence sequences
+            inference_data = self.SequenceDataset(data,
+                                                input_range = self.motor_slice,
+                                                output_range = self.end_slice,
+                                                sequence_length = self.MAX_SEQ_LENGTH,
+                                                shuffle = False,
+                                                train = False,
+                                                inverse = True)
+
+
+            # Gather all sequence data
+            X, y = inference_data.get_all_items()
+            Y_pred = self.ik_net(X.to(self.device))
+
+            # Create numpy arrays
+            X = X.cpu()
+            X = self.denormalize_data(X.numpy(),"end_full")
+            Y_pred = Y_pred.cpu()
+            Y_pred = self.denormalize_data(Y_pred.numpy(),"motor")
+
+
+            return Y_pred

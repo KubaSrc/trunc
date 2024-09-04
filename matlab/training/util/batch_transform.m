@@ -15,7 +15,6 @@ function T_new = batch_transform(T1,T2)
     T_new = array2table(zeros([size(T2,1),7]),'VariableNames',v_names);
 
     
-
     for i = 1:size(T2,1)
         qi = [T2.qw_end_avg(i),T2.qx_end_avg(i),T2.qy_end_avg(i),T2.qz_end_avg(i)];
         pi = [T2.x_end_avg(i),T2.y_end_avg(i),T2.z_end_avg(i)];

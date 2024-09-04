@@ -61,6 +61,7 @@ motor = armMotor();
 l_delta = load(inputs_name).output;
 num_points=size(l_delta,1);
 comp = load('./state/comp.mat').comp;
+
 if demo
     pause_mat = load(pause_name).pause_mat;
     motor_mat = load(motor_name).motor_mat;
@@ -90,16 +91,7 @@ for p = 1:num_points
         input('Press enter to keep running')
     end
 
-    % Set arm to new pose
-    arm_pos = double(comp+l_delta(p,:));
-    % Prevents the arm from letting too much slack out
-    if max(arm_pos) > arm.max_motor
-        motor_slice = arm_pos > arm.max_motor;
-        disp("Clipping l_delta.")
-        l_delta(p,motor_slice) = l_delta(p,motor_slice) - (arm_pos(motor_slice)-arm.max_motor);
-        arm_pos = double(comp+l_delta(p,:));
-    end
-    arm.set_pos(arm_pos)
+    arm.set_pos_delta(l_delta(p,:))
     
     % Check for pause at waypoint
     if demo && active_pause && (pause_mat(p) ~= -1 && pause_mat(p) ~= 0)

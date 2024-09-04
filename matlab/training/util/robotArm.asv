@@ -32,33 +32,26 @@ classdef robotArm
             end
             
         end
-
-        % Get the pose of a specific body ID
-        function pose = get_pose_id(obj,id)
-            for i = 1:obj.nnc.getFrame.nRigidBodies
-                body = obj.nnc.getFrame().RigidBodies(i);
-                body_id = body.ID;
-                if body_id == id
-                    pose=body;
-                    break;
-                end
-            end
-        end
-
         
-        % Read in position of arm from Mocap
+        % Read in position from Mocap
         function tool = get_pose(obj)
-            if obj.nnc.getFrame.nRigidBodies >= 2
-                tool = obj.get_pose_id(obj.arm_ID);
+            if arm.nnc.getFrame.nRigidBodies > 2
+                for i = 1:arm.nnc.getFrame.nRigidBodies
+                    body = obj.nnc.getFrame().RigidBodies(i);
+                    id = body.ID;
+                    if id == obj.arm_ID
+                        tool=body;
+                        break;
+                    end
+                end
             else
                 tool = obj.nnc.getFrame().RigidBodies(1); %End Effector
             end
         end
 
-        % Read in position of stick from Mocap
-        function tool = get_pose_stick(obj)
-            tool = obj.get_pose_id(obj.stick_ID);
-        end
+        % function stick = get_pose_stick(obj)
+        % 
+        % end
 
         % Read in position from Mocap
         function tool_pos = get_pose_absolute(obj)
