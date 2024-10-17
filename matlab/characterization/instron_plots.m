@@ -38,22 +38,31 @@ T_tst_p = readtable("./instron/truss-steel-torque_pole.csv");
 
 %% Flex shaft plot
 
-fig = figure(1); clf; hold on;
+fig = figure(1); clf; hold on; grid on; box on;
 
-plot(T_flex.Strain_0*10,T_flex.Stifness_0,'LineWidth',2,'LineStyle','-.','color',"#F5A5A7")
-errorbar(T_flex.Strain_0*10,T_flex.Stifness_0,T_flex.Stifness_1-T_flex.Stifness_0,T_flex.Stifness_2-T_flex.Stifness_0,'LineWidth',3,'LineStyle','none','color',map(1,:))
+% plot(T_flex.Strain_0*10,T_flex.Stifness_0,'LineWidth',2,'LineStyle','-.','color',"#F5A5A7")
+% errorbar(T_flex.Strain_0*10,T_flex.Stifness_0,T_flex.Stifness_1-T_flex.Stifness_0,T_flex.Stifness_2-T_flex.Stifness_0,'LineWidth',3,'LineStyle','none','color',map(1,:))
+
+
+shadedErrorBar(T_flex.Strain_0*10,T_flex.Stifness_0,[T_flex.Stifness_2-T_flex.Stifness_0,-(T_flex.Stifness_1-T_flex.Stifness_0)],'lineProps',{'LineStyle','-.','Color',map(1,:),'lineWidth',2,'MarkerSize',10,"DisplayName",""})
+scatter(T_flex.Strain_0*10,T_flex.Stifness_0,120,'Marker','x','MarkerEdgeColor','k','LineWidth',1.5)
+
+
+% axis formatting
+set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
+ylim([0,65])
+xlim([-2,23])
 
 
 % figure formatting
 set(gcf,'color','w');
 set(fig, 'Units', 'inches');
 width = 2.25;
-height = 1.5;
-set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
+height = 1.75;
+set(fig, 'Position', [0, 0, width*2.5, height*2.5]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
-ylim([0,65])
 
 
 % export fig
