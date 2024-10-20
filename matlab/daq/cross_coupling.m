@@ -46,13 +46,24 @@ end
 
 %% PLotting function
 data = load('theta_12.mat');
-export_fig = true;
-fig_s = 3;
-% fonts
-ax_font_size = 9*fig_s;
-legend_font_size = 9*fig_s;
 
-fig = figure(1); clf; hold on;
+% fig sizes and scale factor
+fig_w = 300; fig_h = 300; fig_s = 3;
+
+% fonts
+ax_font_size = 7*fig_s;
+legend_font_size = 6*fig_s;
+set(0,'DefaultTextFontname', 'CMU Sans Serif' )
+set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
+
+% colors
+map = brewermap(9,'Set1');
+
+% save path
+export_fig = false;
+
+
+fig = figure(1); clf; hold on; box on
 grid on
 map = brewermap(9,'Set1');
 
@@ -62,15 +73,15 @@ data.t = data.t - data.t(1);
 data.input_pos = data.input_pos(motor_on:end,:);
 data.output_pos = data.output_pos(motor_on:end,:);
 
-plot(data.t,data.input_pos./(2*pi),'LineWidth',3,'color',map(1,:),"DisplayName","")
-plot(data.t,data.output_pos./(2*pi),'LineWidth',3,'color',map(2,:),"DisplayName","")
+plot(data.t,data.input_pos./(2*pi),'LineWidth',3,'color',map(2,:),"DisplayName","")
+plot(data.t,data.output_pos./(2*pi),'LineWidth',3,'color',map(1,:),"DisplayName","")
 
 % figure formatting
 set(gcf,'color','w');
 set(fig, 'Units', 'inches');
 width = 2.25;
 height = 1.75;
-set(fig, 'Position', [0, 0, width*fig_s, height*fig_s]);
+set(fig, 'Position', [0, 0, width*2.5, height*2.5]);
 
 % axis formatting
 set(findobj(gcf,'type','axes'),'FontSize',ax_font_size,'LineWidth',1.5);
@@ -84,7 +95,7 @@ lg.ItemTokenSize(1) = 20;
 
 % export fig
 if export_fig
-    exportgraphics(gcf,'./cross-coupling.png','Resolution',300*fig_s)
+    exportgraphics(gcf,'../../figures/coupling/cross-coupling.png','Resolution',300*fig_s)
 end
 
 %% Function for decoding signal from encoders

@@ -4,7 +4,7 @@ close all; clear all; clc
 warning('off','all')
 
 % Fonts
-fig_w = 300; fig_h = 300; fig_s = 3;
+fig_w = 300; fig_h = 300; fig_s = 2;
 ax_font_size = 9*fig_s;
 
 % Figures
@@ -13,7 +13,7 @@ set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
 map = brewermap(9,'Set1');
 
 % save path
-export_fig = true;
+export_fig = false;
 
 %%
 
@@ -31,7 +31,7 @@ t = tiledlayout(5,1);
 t.TileSpacing = 'tight';
 t.Padding = 'tight';  
 
-loc = './DAQ Experiments/';
+loc = './characterization/DAQ Experiments/';
 files = {'zerozero','fivedeg','tendeg','fifdeg','twendeg'};
 names = {'0^\circ', '5^\circ', '10^\circ',...
     '15^\circ','20^\circ'};
@@ -39,7 +39,7 @@ names = {'0^\circ', '5^\circ', '10^\circ',...
 %     '15','20'};
 
 
-loc2 = './Tensile Experiments/';
+loc2 = './characterization/Tensile Experiments/';
 files2 = {'minus13mm','minus6p5mm','plus6p5mm','plus13mm','plus22p5mm'};
 names2 = {'-13 mm', '-6.5 mm', '+6.5 mm',...
     '+13 mm','+22.5 mm'};

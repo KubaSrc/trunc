@@ -586,6 +586,8 @@ class aux_bot():
     def inverse_prediction(self,input_path=None,output_path=None):
         with torch.no_grad():
 
+            t1 = time.time()
+
             # Load in motor data
             pos_data = scipy.io.loadmat(self.drive_path + input_path)['wp']
 
@@ -619,6 +621,7 @@ class aux_bot():
             X = self.denormalize_data(X.numpy(),"end_full")
             Y_pred = Y_pred.cpu()
             Y_pred = self.denormalize_data(Y_pred.numpy(),"motor")
+            print(time.time()-t1)
             y = self.denormalize_data(y.numpy(),"motor")
 
             Y_actual = self.data[0,self.motor_slice]

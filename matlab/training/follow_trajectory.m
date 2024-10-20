@@ -6,9 +6,9 @@ pause_length = 0.5;
 pulse_length = 0;
 noise_samples = 15;
 model_type = 'DNN';
-trajectory = 'valve';
+trajectory = 'circle';
 record = false;
-demo = true;
+demo = false;
 
 
 pause_idx = 1;
@@ -63,7 +63,7 @@ output(1,:) = {'date and time','p',...
 
 fprintf('Starting test\n');
    
-arm.reset_arm();
+% arm.reset_arm();
 
 for p = 1:num_points
    
@@ -123,6 +123,8 @@ end
 % Clean up.
 delete(cam)
 clear cam
+
+arm.reset_arm();
 
 % Save output file
 if record
