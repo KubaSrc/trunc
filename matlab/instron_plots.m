@@ -16,24 +16,24 @@ set(0,'DefaultAxesFontName', 'CMU Sans Serif' )
 map = brewermap(9,'Set1');
 
 % save path
-export_fig = true;
+export_fig = false;
 
 
 %% Load-in all data
 
-T_flex = readtable("./Instron Data/flex-shaft.csv");
+T_flex = readtable("./instron/flex-shaft.csv");
 
-T_spf = readtable("./Instron Data/simple-printed-force.csv");
-T_spt_a = readtable("./Instron Data/simple-printed-bending.csv");
-T_spt_p = readtable("./Instron Data/simple-printed-torsion.csv");
+T_spf = readtable("./instron/simple-printed-force.csv");
+T_spt_a = readtable("./instron/simple-printed-bending.csv");
+T_spt_p = readtable("./instron/simple-printed-torsion.csv");
 
-T_ssf = readtable("./Instron Data/Force-displacment/simple-force-displacment_1.csv");
-T_ssb = readtable("./Instron Data/Bending-rotation/simple-bending-rotation_1.csv");
-T_sst = readtable("./Instron Data/Torsion-rotation/simple-torsion-rotation_1.csv");
+T_ssf = readtable("./instron/Force-displacment/simple-force-displacment_1.csv");
+T_ssb = readtable("./instron/Bending-rotation/simple-bending-rotation_1.csv");
+T_sst = readtable("./instron/Torsion-rotation/simple-torsion-rotation_1.csv");
 
-T_tsf = readtable("./Instron Data/Force-displacment/complex-force-displacment_1.csv");
-T_tsb = readtable("./Instron Data/Bending-rotation/complex-bending-rotation_1.csv");
-T_tst = readtable("./Instron Data/Torsion-rotation/complex-torsion-rotation_1.csv");
+T_tsf = readtable("./instron/Force-displacment/complex-force-displacment_1.csv");
+T_tsb = readtable("./instron/Bending-rotation/complex-bending-rotation_1.csv");
+T_tst = readtable("./instron/Torsion-rotation/complex-torsion-rotation_1.csv");
 
 %% Flex shaft plot
 
