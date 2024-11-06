@@ -2,7 +2,7 @@ clear all; close all; clc;
 addpath('./util/')
 
 % Create an instance of the arm and motor
-motor = armMotor();
+% motor = armMotor();
 
 arm = robotArm();
 % arm.reset_arm()
@@ -54,6 +54,21 @@ end
 %%  Motor
 
 motor.pulse(1)
+
+%% Set pictures pose
+
+end_pose = [
+    1393.00;
+    1417.50;
+    1588.75;
+    1290.25;
+    1584.00;
+    1657.25;
+    1686.75;
+    1701.50;
+    1681.75];
+
+arm.set_pos_target(end_pose)
 
 %% Optitrack
 

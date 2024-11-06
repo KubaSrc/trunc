@@ -145,6 +145,18 @@ classdef robotArm
             end
         end
 
+
+        % Setting position directly
+        function set_pos_target(obj,target)
+            % Sends commands to servo motors
+            for idx = 0:8
+                set_servo_position_target(obj.port, idx, target(idx+1));
+            end
+        end
+
+            
+        
+
         % Set pos based on l_delta
         function set_pos_delta(obj,l_delta)
             % Set arm to new pose
