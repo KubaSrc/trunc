@@ -2,7 +2,7 @@ close all; clear; clc;
 
 % Read the data from CSV file
 
-T = readtable("./training/data/2024_02_19_21_08_57/positions_norm_full.csv");
+T = readtable("./training/data/250g/2024_11_06_17_21_07/positions.csv");
 
 % Extract X, Y, and Z data points
 X = (T.x_end_avg).*1000; 

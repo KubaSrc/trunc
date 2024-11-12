@@ -1,5 +1,7 @@
 function T_new = batch_transform(T1,T2)
 
+    
+
     % Change of coordinates so (0,0,0) matches
     T2.x_end_avg = (T2.x_end_avg - T2.x_end_avg(1)) + T2.x_end_avg(1);
     T2.y_end_avg = (T2.y_end_avg - T2.y_end_avg(1)) + T2.y_end_avg(1);

@@ -12,7 +12,7 @@ slack_spacing = 2;
 
 %% Initial setup
 
-weight = '250g_';
+weight = '0g/';
 
 % Save path
 currentDateTime = datetime('now');
@@ -21,6 +21,9 @@ save_path = ['./data/',weight, dirName];
 photo_path = [save_path,'/pictures'];
 mkdir(save_path);
 mkdir(photo_path);
+mkdir([photo_path,'/cam_1']);
+mkdir([photo_path,'/cam_2']);
+mkdir([photo_path,'/cam_3']);
 
 % Save relevant info files
 copyfile('./state', save_path);
@@ -133,19 +136,19 @@ for r = traj_start:num_trajectories
         % Take a photo
         img_1 = getsnapshot(cam_1);
         % Save the image to disk.
-        filename = sprintf('/trajectory%d_pose_%d_cam1.jpg', r, p);
+        filename = sprintf('/cam_1/trajectory%d_pose_%d.jpg', r, p);
         im_path = [photo_path,filename];
         imwrite(img_1, im_path);
 
         img_2 = getsnapshot(cam_2);
         % Save the image to disk.
-        filename = sprintf('/trajectory%d_pose_%d_cam2.jpg', r, p);
+        filename = sprintf('/cam_2/trajectory%d_pose_%d.jpg', r, p);
         im_path = [photo_path,filename];
         imwrite(img_2, im_path);
 
         img_3 = getsnapshot(cam_3);
         % Save the image to disk.
-        filename = sprintf('/trajectory%d_pose_%d__cam3.jpg', r, p);
+        filename = sprintf('/cam_3/trajectory%d_pose_%d.jpg', r, p);
         im_path = [photo_path,filename];
         imwrite(img_3, im_path);
 
@@ -155,8 +158,14 @@ end
 % Reset arm and camera
 arm.reset_arm();
 
-delete(cam)
-clear cam
+delete(cam_1)
+clear cam_1
+
+delete(cam_2)
+clear cam_2
+
+delete(cam_3)
+clear cam_3
 
 %% Helper function
 
