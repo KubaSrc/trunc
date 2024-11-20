@@ -14,12 +14,12 @@ active_motor = false;
 cam_idx = 2;
 
 % Switch to programmed path
-programed = true;
-programmed_path = './record/mocap/8-9-2024';
+programed = false;
+programmed_path = './record/mocap/11-12-2024';
 
 if ~ programed
     trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
-    inputs_name = ['./inference/',model_type,'_',trajectory,'_trajectory_inputs_comp.mat'];
+    inputs_name = ['./inference/',model_type,'_',trajectory,'_trajectory_inputs.mat'];
     pause_name = ['./inference/',trajectory,'_pause.mat'];
     motor_name = ['./inference/',trajectory,'_motor.mat'];
     save_points_name = ['./inference/',trajectory,'_p_'];

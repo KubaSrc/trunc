@@ -12,7 +12,7 @@ slack_spacing = 2;
 
 %% Initial setup
 
-weight = '0g/';
+weight = '-50g/';
 
 % Save path
 currentDateTime = datetime('now');
