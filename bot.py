@@ -32,13 +32,15 @@ class aux_bot():
 
         # Parameter indicies
         self.m_inputs = 9
-        self.n_outputs = 7
+        self.n_outputs = 8
         self.motor_slice = slice(0,self.m_inputs)
         self.end_slice = slice(self.m_inputs,self.m_inputs+self.n_outputs)
         self.end_slice_xyz = slice(self.m_inputs,self.m_inputs+3)
         self.end_slice_q = slice(self.m_inputs+3,self.m_inputs+7)
         self.input_size = self.motor_slice.stop - self.motor_slice.start
         self.output_size = self.end_slice.stop - self.end_slice.start
+
+        # Add parameters for the motor lengths & the weights
 
         # Upload data as fixed length trajectories instead of single points
         self.upload_data()
@@ -146,7 +148,7 @@ class aux_bot():
         if self.motor_path != None:
             # Position data
             self.pos_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
-                                usecols = tuple(range(3, 3 + self.output_size)))
+                                usecols = tuple(range(0, self.output_size)))
            
             # Motor data
             motor_data = scipy.io.loadmat(self.drive_path+self.motor_path)
@@ -157,9 +159,9 @@ class aux_bot():
         else:
             # Full data
             self.pos_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
-                                usecols = tuple(range(3, 3 + self.output_size)))
+                                usecols = tuple(range(0, self.output_size)))
             self.motor_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
-                                usecols = tuple(range(3 + self.output_size, 3 + self.output_size + self.input_size)))
+                                usecols = tuple(range(self.output_size, self.output_size + self.input_size)))
         
         print("[aux-net] Loaded pos data: ", self.pos_data.shape)
         print("[aux-net] Loaded motor data: ", self.motor_data.shape)
