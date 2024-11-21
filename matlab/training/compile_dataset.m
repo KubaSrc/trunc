@@ -25,6 +25,12 @@ T_full_sub = T_full(:,4:10);
 T_csv = T_full(:,4:19);
 T_csv.mass = repmat(mass(1), height(T_csv), 1); % Repeat mass(1) for the number of rows in T_csv
 
+T_left = T_csv(:,1:7);
+T_right = T_csv(:,8:end-1);
+T_mid = T_csv(:,end);
+T_csv_original_data = [T_left,T_mid,T_right];
+writetable(T_csv_original_data, 'data/original_training_data.csv');
+
  % Add point cloud
  figure(1); clf; hold on; grid on;
 

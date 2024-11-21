@@ -53,7 +53,7 @@ end
 
 %%  Motor
 
-motor.pulse(5)
+motor.pulse(1)
 
 %% Set pictures pose
 
