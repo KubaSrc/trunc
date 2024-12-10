@@ -7,7 +7,7 @@ class aux_bot_DNN(aux_bot):
 
         # Size attributes
         MAX_SEQ_LENGTH = 1
-        BATCH_SIZE = 16
+        BATCH_SIZE = 16 # originally 16
 
         super().__init__(drive_path, pos_path, motor_path,
                  train_forward, train_inverse,
@@ -15,12 +15,14 @@ class aux_bot_DNN(aux_bot):
 
         # Constant for forward model
         self.EPOCHS = 100
-        self.LEARNING_RATE = 0.0005
+        self.LEARNING_RATE = 0.0005 #originally 0.0005
         self.MOMENTUM = 0.9
-        self.WEIGHT_DECAY = 0
+        self.WEIGHT_DECAY = 0 #originally 0
         self.DROPOUT = 0
         self.LAYERS = 1
         self.GAMMA = 0.9
+        print("data")
+        print(self.motor_slice)
 
         # Train forward model
         if  train_forward:
@@ -35,9 +37,9 @@ class aux_bot_DNN(aux_bot):
             self.fk_net.eval()
             print("[aux_bot_DNN] Forward model succesfully loaded")
 
-        # Constant for inverse model
-        self.EPOCHS = 50
-        self.LEARNING_RATE = 0.001
+         # Constant for inverse model
+        self.EPOCHS = 50 # originally 50
+        self.LEARNING_RATE = 0.025 #originally 0.001
         self.MOMENTUM = 0.9
         self.DROPOUT = 0
         self.LAYERS = 1
@@ -84,7 +86,7 @@ class aux_bot_DNN(aux_bot):
     #########################
 
     class inverse_net(nn.Module):
-        def __init__(self, inputs=7, hidden=1024, outputs=9):
+        def __init__(self, inputs=9, hidden=1024, outputs=7):
             super().__init__()
             self.fc1 = nn.Linear(inputs,hidden)
             self.fc2 = nn.Linear(hidden,hidden)

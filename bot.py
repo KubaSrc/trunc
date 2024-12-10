@@ -32,18 +32,21 @@ class aux_bot():
 
         # Parameter indicies
         self.m_inputs = 9
-        self.n_outputs = 8
+        self.n_outputs = 7
         self.motor_slice = slice(0,self.m_inputs)
         self.end_slice = slice(self.m_inputs,self.m_inputs+self.n_outputs)
         self.end_slice_xyz = slice(self.m_inputs,self.m_inputs+3)
         self.end_slice_q = slice(self.m_inputs+3,self.m_inputs+7)
         self.input_size = self.motor_slice.stop - self.motor_slice.start
         self.output_size = self.end_slice.stop - self.end_slice.start
-
+ 
         # Add parameters for the motor lengths & the weights
 
         # Upload data as fixed length trajectories instead of single points
         self.upload_data()
+
+        print("Self.data:", self.data[0:1][self.motor_slice])
+
         home_pos = scipy.io.loadmat(self.drive_path+'/matlab/training/state/home_measured.mat')
         self.home_pos = home_pos['pos'][0]
 
@@ -52,8 +55,10 @@ class aux_bot():
     # DATA PRE-PROCESSING
     ############################
     def normalize_data(self,data,d_type="full"):
+        temp = self.max_scale - self.min_scale#DEBUGGING
+        temp[temp == 0] = 1 #DEBUGGING
         if d_type == "full":
-            data = (data-self.min_scale)/(self.max_scale-self.min_scale)
+            data = (data-self.min_scale)/(temp)
         elif d_type == "motor":
                 data = (data-self.min_scale[self.motor_slice])/(self.max_scale[self.motor_slice]-self.min_scale[self.motor_slice])
         elif d_type == "end_full":
@@ -166,6 +171,7 @@ class aux_bot():
         print("[aux-net] Loaded pos data: ", self.pos_data.shape)
         print("[aux-net] Loaded motor data: ", self.motor_data.shape)
 
+
         # Combine arrays into one
         self.data = np.hstack((self.motor_data,self.pos_data))
 
@@ -182,6 +188,8 @@ class aux_bot():
 
         if self.normalize:
             self.data = self.normalize_data(self.data)
+
+        print("AFTER normalize:", self.data[0:1])
 
         self.test_sequence =   self.SequenceDataset(self.data,
                                                         input_range = self.motor_slice,
@@ -424,6 +432,7 @@ class aux_bot():
         losses = []
         criterion = nn.MSELoss()
         self.optimizer = optim.Adam(ik_net.parameters(), lr, weight_decay=decay)
+        #self.optimizer = optim.AdamW(ik_net.parameters(), lr, weight_decay= decay)
 
         # Anneal the learing rate over time
         if annealing:
@@ -434,7 +443,11 @@ class aux_bot():
             loss_list = []
             i = 0
             for X, y in self.inverse_train_loader:
+                
                 X, y = X.to(self.device), y.to(self.device)
+
+                #print("printing X", X)
+                #print("Y", y)
 
                 # Reset gradients
                 self.optimizer.zero_grad()
@@ -444,6 +457,8 @@ class aux_bot():
                 loss = criterion(y_pred,y)
                 loss.backward()
                 self.optimizer.step()
+
+                #print("y_pred", y_pred)
 
                 # Track performance
                 loss_list.append(loss.item())
