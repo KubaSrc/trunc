@@ -39,7 +39,7 @@ class aux_bot_DNN(aux_bot):
 
          # Constant for inverse model
         self.EPOCHS = 50 # originally 50
-        self.LEARNING_RATE = 0.025 #originally 0.001
+        self.LEARNING_RATE = 0.001 #originally 0.001
         self.MOMENTUM = 0.9
         self.DROPOUT = 0
         self.LAYERS = 1
@@ -90,7 +90,8 @@ class aux_bot_DNN(aux_bot):
             super().__init__()
             self.fc1 = nn.Linear(inputs,hidden)
             self.fc2 = nn.Linear(hidden,hidden)
-            self.fc3 = nn.Linear(hidden,outputs)
+            self.fc3 = nn.Linear(hidden,hidden)
+            self.fc4 = nn.Linear(hidden,outputs)
             self.input_size = inputs
             self.output_size = outputs
 
@@ -101,4 +102,6 @@ class aux_bot_DNN(aux_bot):
             y = self.fc2(y)
             y = F.relu(y)
             y = self.fc3(y)
+            y = F.relu(y)
+            y = self.fc4(y)
             return y

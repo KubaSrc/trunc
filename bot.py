@@ -32,7 +32,7 @@ class aux_bot():
 
         # Parameter indicies
         self.m_inputs = 9
-        self.n_outputs = 7
+        self.n_outputs = 8
         self.motor_slice = slice(0,self.m_inputs)
         self.end_slice = slice(self.m_inputs,self.m_inputs+self.n_outputs)
         self.end_slice_xyz = slice(self.m_inputs,self.m_inputs+3)
@@ -446,8 +446,9 @@ class aux_bot():
                 
                 X, y = X.to(self.device), y.to(self.device)
 
-                #print("printing X", X)
-                #print("Y", y)
+                #Convert X and Y to matrices instead of Tensors
+                X = X.squeeze(1)
+                y = y.squeeze(1)
 
                 # Reset gradients
                 self.optimizer.zero_grad()
@@ -458,7 +459,9 @@ class aux_bot():
                 loss.backward()
                 self.optimizer.step()
 
-                #print("y_pred", y_pred)
+                # print("printing X", self.denormalize_data(X,"end_full"))
+                # print("Y",self.denormalize_data(y,"motor"))
+                # print("y_pred", self.denormalize_data(y_pred,"motor"))
 
                 # Track performance
                 loss_list.append(loss.item())
@@ -488,6 +491,10 @@ class aux_bot():
         for X, y in loader:
             X, y = X.to(self.device), y.to(self.device)
 
+            #Convert X and Y to matrices instead of Tensors
+            X = X.squeeze(1)
+            y = y.squeeze(1)   
+
             # Run network forward, backward, and then update
             y_pred = ik_net(X)
 
@@ -503,14 +510,7 @@ class aux_bot():
             accuracy.append(np.mean(error))
             err = np.append(err,error)
 
-            # Record distance of this trajectory
-            X = X[:,:,:3]
-            diffs = np.diff(X, axis=1)  # This will reduce the 2nd dimension by 1
-            point_dist = np.linalg.norm(diffs, axis=-1)
-            seq_dis = np.sum(point_dist, axis=1)
-            dist = np.append(dist, seq_dis)
-
-        return np.mean(accuracy), err, dist
+        return np.mean(accuracy), err
 
     # Plots the test accuracy of the model
     def eval_model_inverse(self,ik_net,loss):
@@ -529,8 +529,8 @@ class aux_bot():
         ax1.grid()
 
         # Determine train and test accuracy
-        test_accuracy,test_error,test_dist = self.test_inverse(ik_net,data='test')
-        train_accuracy, train_error,train_dist = self.test_inverse(ik_net,data='train')
+        test_accuracy,test_error = self.test_inverse(ik_net,data='test')
+        train_accuracy, train_error = self.test_inverse(ik_net,data='train')
         self.test_accuracy = test_accuracy
 
         print("Train accuracy {:.10f} mm Test accuracy: {:.10f} mm".format(train_accuracy,test_accuracy))
@@ -572,14 +572,6 @@ class aux_bot():
 
         savemat(self.drive_path + "/metrics/" + model_name,{'test_error' : test_error})
 
-
-        f = plt.figure()
-        plt.scatter(train_dist,train_error)
-        plt.scatter(test_dist,test_error)
-        plt.legend(["test","train"])
-        plt.xlabel("trajectory distance (mm)",fontsize = 14)
-        plt.ylabel("inverse model error (mm)",fontsize = 14)
-        plt.show()
 
         return test_accuracy
 
