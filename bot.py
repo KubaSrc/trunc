@@ -417,6 +417,9 @@ class aux_bot():
         model_name = self.model_type + '_forward_' + time.strftime('%Y_%m_%d-%H_%M_%S_') + '{:.3f}mm'.format(test_accuracy)
         torch.save(fk_net.state_dict(),self.drive_path + '/models/' + model_name)
 
+        print("Model name:", self.drive_path + "/metrics/" + model_name,{'test_error' : test_error,
+                                                                    'test_q_error' : test_q_error})
+
         savemat(self.drive_path + "/metrics/" + model_name,{'test_error' : test_error,
                                                                     'test_q_error' : test_q_error})
 
