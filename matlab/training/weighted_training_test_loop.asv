@@ -13,7 +13,7 @@ randomized = true;
 
 %% Initial setup
 
-weight = '758/';
+weight = '-50g/';
 
 % Save path
 currentDateTime = datetime('now');

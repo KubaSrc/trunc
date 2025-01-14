@@ -44,10 +44,10 @@ T_csv_original_data = [T_left,T_mid,T_right];
  legendLabels = ["450", "500", "527", "655", "978", "1233", "1542"];
 
 
- % T_full_subA = table2array(T_full_sub)*1000;
- % T_full_subA(:,8) = mass(1);
- % s = scatter3(T_full_subA(1:1500,1),T_full_subA(1:1500,2),T_full_subA(1:1500,3),'filled', 'MarkerFaceColor', colors(1,:), 'MarkerEdgeColor','k','LineWidth',1);
- % s.SizeData=5;
+ T_full_subA = table2array(T_full_sub)*1000;
+ T_full_subA(:,8) = mass(1);
+ s = scatter3(T_full_subA(1:1500,1),T_full_subA(1:1500,2),T_full_subA(1:1500,3),'filled', 'MarkerFaceColor', colors(1,:), 'MarkerEdgeColor','k','LineWidth',1);
+ s.SizeData=5;
 
 % Pull in recent data
 for trial = 2:length(mass)
@@ -88,7 +88,7 @@ T_right = T_csv(:,8:end-1);
 T_mid = T_csv(:,end);
 T_csv_correct = [T_left,T_mid,T_right];
 
-%writetable(T_csv_correct, 'data/weighted_training_data.csv');
+writetable(T_csv_correct, 'data/weighted_training_data.csv');
 
 % Add labels, legend, and formatting
 xlabel('X-axis (mm)');

@@ -499,7 +499,7 @@ wp = table2array(T_new);
 wp = [wp, repmat(655,[size(wp, 1),1])];
 
 if export_traj
-    save('./inference/655g_circle_trajectory.mat','wp')
+    save('./inference/655g_unweighted_circle_trajectory.mat','wp')
 end
 
 %% Helper functions
