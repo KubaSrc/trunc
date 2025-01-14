@@ -3,7 +3,7 @@ from bot import *
 class aux_bot_DNN(aux_bot):
 
     def __init__(self,drive_path = None, pos_path = None, motor_path = None,
-                 train_forward = False, train_inverse = None, normalize = True):
+                 train_forward = False, train_inverse = False, normalize = True, base_model = None):
 
         # Size attributes
         MAX_SEQ_LENGTH = 1
@@ -46,15 +46,20 @@ class aux_bot_DNN(aux_bot):
         self.GAMMA = 0.9
 
         # Train inverse model
-        if not train_inverse:
+        if train_inverse:
             self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size)
+
+            # Retrain base model
+            if base_model:
+                self.ik_net.load_state_dict(torch.load(drive_path + base_model, map_location=self.device))
+            
             self.train_inverse(self.ik_net,self.EPOCHS,self.LEARNING_RATE,self.MOMENTUM,self.WEIGHT_DECAY,annealing=True)
             self.eval_model_inverse(self.ik_net,self.ik_train_loss)
 
         # Load inverse model instead
-        if train_inverse:
+        if not train_inverse:
             self.ik_net = self.inverse_net(hidden=1600)
-            self.ik_net.load_state_dict(torch.load(drive_path + train_inverse, map_location=self.device)) #train inverse should look like: '/models/DNN_inverse_2024_02_21-16_08_24_10.006mm'
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2024_02_21-16_08_24_10.006mm', map_location=self.device))
             self.ik_net.eval()
             self.ik_net.to(self.device)
             print("[aux_bot_DNN] Inverse model succesfully loaded")
