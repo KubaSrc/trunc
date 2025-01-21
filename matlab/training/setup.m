@@ -5,11 +5,11 @@ addpath('./util/')
 % motor = armMotor();
 
 arm = robotArm();
-arm.reset_arm()
+% arm.reset_arm()
  
 %% Find home position
 
-set_home = true;
+set_home = false;
 
 home = [80,94,91,...
         55,92,81,...
@@ -38,18 +38,37 @@ end
 
 %% Set max compression
 
-set_comp = true;
+set_comp = false;
 
 home = load('./state/home').home;
-delta_l = -70;
+delta_l = -100;
 comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
 comp_max = home + comp_delta;
+
 
 arm.set_pos(comp_max);
 
 if set_comp
     save('./state/comp_max',"comp_max");
 end
+
+%% Comp loop
+
+
+home = [80,94,88,...
+        60,92,81,...
+        63,83,75];
+
+delta_l = -100;
+comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
+comp = home + comp_delta;
+
+
+for i=1:10
+    arm.set_pos(comp);
+    arm.set_pos(home)
+end
+
 
 %%  Motor
 
