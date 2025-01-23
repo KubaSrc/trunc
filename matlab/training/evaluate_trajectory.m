@@ -10,7 +10,7 @@ home_pos = load('./state/home_measured.mat').pos;
 
 T_ideal = load('./inference/655g_circle_trajectory_IDEAL.mat');
 T_ideal = T_ideal.wp;
-T_model = readtable('./experiments/circle_2025_01_14_15_50_21/positions.csv');
+T_model = readtable('./experiments/circle_originalWMass2025_01_23_14_52_29/positions.csv');
 
 
 % Ideal points

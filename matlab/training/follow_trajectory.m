@@ -15,7 +15,7 @@ cam_idx = 2;
 
 % Switch to programmed path
 programed = false;
-programmed_path = './inference/655g_all_data_with_mass_inputs.mat';
+programmed_path = './inference/655g_all_data_zeroed_inputs.mat';
 
 if ~ programed
     trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
@@ -25,7 +25,7 @@ if ~ programed
     save_points_name = ['./inference/',trajectory,'_p_'];
 else
     trajectory_name = "./inference/655g_weighted_circle_trajectory.mat";
-    inputs_name = "./inference/655g_all_data_with_mass_inputs.mat";
+    inputs_name = "./inference/655g_all_data_zeroed_inputs.mat";
 end
 
 %% Initial setup
