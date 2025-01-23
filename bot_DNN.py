@@ -59,7 +59,7 @@ class aux_bot_DNN(aux_bot):
         # Load inverse model instead
         if not train_inverse:
             self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size)
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2025_01_14-12_47_53_11.934mm', map_location=self.device))
+            self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_finalized_models/all_data_with_mass_9.876mm', map_location=self.device))
             self.ik_net.eval()
             self.ik_net.to(self.device)
             print("[aux_bot_DNN] Inverse model succesfully loaded")
