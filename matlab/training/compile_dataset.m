@@ -31,12 +31,12 @@ T_new = [];
 % Pull in recent data
 for trial = 1:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path);
-    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(mass(trial),[size(T_i,1),1]),table2array(T_i(:,11:19))]];
+    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(0,[size(T_i,1),1]),table2array(T_i(:,11:19))]];
 end
 
 T_new = array2table(T_new,"VariableNames",header);
 
-writetable(T_new, 'data/all_new_weighted_training_data.csv');
+writetable(T_new, 'data/all_new_zeroed_training_data.csv');
 
 
 
