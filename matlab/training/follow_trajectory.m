@@ -15,17 +15,16 @@ cam_idx = 2;
 
 % Switch to programmed path
 programed = false;
-programmed_path = './inference/655g_all_data_zeroed_inputs.mat';
 
 if ~ programed
-    trajectory_name = ['./inference/',trajectory,'_trajectory.mat'];
-    inputs_name = ['./inference/',model_type,'_',trajectory,'_trajectory_inputs.mat'];
-    pause_name = ['./inference/',trajectory,'_pause.mat'];
-    motor_name = ['./inference/',trajectory,'_motor.mat'];
-    save_points_name = ['./inference/',trajectory,'_p_'];
+    trajectory_path = ['./inference/',trajectory,'_trajectory.mat'];
+    inputs_path = ['./inference/',model_type,'_',trajectory,'_trajectory_inputs.mat'];
+    pause_path = ['./inference/',trajectory,'_pause.mat'];
+    motor_path = ['./inference/',trajectory,'_motor.mat'];
+    save_points_path = ['./inference/',trajectory,'_p_'];
 else
-    trajectory_name = "./inference/655g_weighted_circle_trajectory.mat";
-    inputs_name = "./inference/655g_all_data_zeroed_inputs.mat";
+    trajectory_path = "./inference/no_weight_circle_trajectory.mat"; % Desired trajectory (X,Q)
+    inputs_path = "./inferenceno_weight_circle_trajectory_inputs.mat"; % Motor positions from model
 end
 
 %% Initial setup
@@ -36,7 +35,7 @@ dirName = datestr(currentDateTime, '_yyyy_mm_dd_HH_MM_SS');
 if ~ programed
     save_path = ['./experiments/',trajectory, dirName];
 else
-    save_path = [programmed_path,'/data'];
+    save_path = [inputs_path,'/data'];
 end
 photo_path = [save_path,'/pictures'];
 
@@ -58,18 +57,18 @@ arm.max_motor = 150;
 motor = armMotor();
 
 % Loading trajectory info
-l_delta = load(inputs_name).output;
+l_delta = load(inputs_path).output;
 num_points=size(l_delta,1);
 comp = load('./state/comp.mat').comp;
 
 if demo
-    pause_mat = load(pause_name).pause_mat;
-    motor_mat = load(motor_name).motor_mat;
+    pause_mat = load(pause_path).pause_mat;
+    motor_mat = load(motor_path).motor_mat;
 end
 
 if record
-    copyfile(trajectory_name, save_path);
-    copyfile(inputs_name, save_path);
+    copyfile(trajectory_path, save_path);
+    copyfile(inputs_path, save_path);
 end
 %% Loop and collect data
 

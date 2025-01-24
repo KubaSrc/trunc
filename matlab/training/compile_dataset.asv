@@ -25,18 +25,48 @@ T_full_sub = T_full(:,4:10);
 
 %% Save dataset with only new data
 
-header = [T_full.Properties.VariableNames(4:10), {'mass'}, T_full.Properties.VariableNames(11:19)];
-T_new = [];
+header = {T_full.Variables(3:10),'mass',T_full.Variables(11:19)}
+T_new = table
 
 % Pull in recent data
-for trial = 1:length(mass) 
+for trial = 2:length(mass)
+    
     T_i = readtable(root_path+data_path(trial)+file_path);
-    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(mass(trial),[size(T_i,1),1]),table2array(T_i(:,11:19))]];
+
+
+        % 
+        % T_i(:,4:6) = T_i(:,4:6) - T_i(1,4:6);
+        % T_i_sub = T_i(:,4:10);
+        % T_i_sub = weighted_transform(T_i_sub);
+        % T_i_sub = batch_transform(T_full_sub,T_i_sub);
+        % 
+        % %Creating table for the csv of each iteration.
+        % T_i_csv = T_i(:,4:19);
+        % T_i_csv(:,1:7) = T_i_sub;
+        % T_i_csv.mass = repmat(mass(trial), height(T_i_csv), 1); % Repeat mass(1) for the number of rows in T_csv
+        % T_csv = vertcat(T_csv, T_i_csv);
+        % 
+        % T_i_sub = table2array(T_i_sub)*1000;
+        % T_i_sub(:,8) = mass(trial);
+        % 
+        % %Add each sub table to the full table
+        % T_full_subA = [T_full_subA;T_i_sub];
+        % 
+        % X = T_i_sub(:,1);
+        % s = scatter3(T_i_sub(:,1),T_i_sub(:,2),T_i_sub(:,3),'filled', 'MarkerFaceColor', colors(trial,:), 'MarkerEdgeColor','none','LineWidth',1);
+        % s.SizeData=50;
+        % 
+        % disp(['Total points: ', num2str(size(T_full_subA, 1))]);
+
+        
 end
 
-T_new = array2table(T_new,"VariableNames",header);
-
-writetable(T_new, 'data/all_new_weighted_training_data.csv');
+% T_left = T_csv(:,1:7);
+% T_right = T_csv(:,8:end-1);
+% T_mid = T_csv(:,end);
+% T_csv_correct = [T_left,T_mid,T_right];
+% 
+% writetable(T_csv_correct, 'data/weighted_training_data.csv');
 
 
 

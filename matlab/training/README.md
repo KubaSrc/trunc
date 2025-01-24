@@ -74,11 +74,6 @@ Compares a set of input waypoints to the measured waypoints infered from the mod
     - Rename the "programmed_path", "trajectory_name", and "inputs_name".
     - Run this while by the "e-stop" to ensure the arm does not move into a compromising position.
     - If "record" is not set to true, change it and re-run the arm. Once complete, set record to true.
-4. Following the trajectory
-    - Open *follow_trajectory.m*.
-    - Rename the "trajectory_name" and "inputs_name".
-    - Run this while by the "e-stop" to ensure the arm does not move into a compromising position.
-    - If "record" is not set to true, change it and re-run the arm.
 5. Evaluate the trajectory
     - Open *evaluate_trajectory.m*.
     - Change "T_ideal" and "T_model" to the appropriate files.

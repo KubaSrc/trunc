@@ -5,7 +5,20 @@ addpath('./util/')
 % motor = armMotor();
 
 arm = robotArm();
+
+load('./state/home_measured.mat').pos;
+
 % arm.reset_arm()
+
+%% Record home position
+
+save_home_pos = false;
+
+tool = arm.get_pose();
+
+if set_home
+    save('./state/home',"home");
+end
  
 %% Find home position
 

@@ -15,7 +15,7 @@ class aux_bot():
 
     def __init__(self,drive_path = None, pos_path = None, motor_path = None,
                  train_forward = False, train_inverse = False,
-                 normalize=True,BATCH_SIZE=None,MAX_SEQ_LENGTH=None,model_type=None):
+                 normalize=True,BATCH_SIZE=None,MAX_SEQ_LENGTH=None,model_type=None,weighted=True):
 
         self.BATCH_SIZE = BATCH_SIZE
         self.MAX_SEQ_LENGTH = MAX_SEQ_LENGTH
@@ -32,7 +32,10 @@ class aux_bot():
 
         # Parameter indicies
         self.m_inputs = 9
-        self.n_outputs = 8
+        if weighted:        
+            self.n_outputs = 8
+        else:
+            self.n_outputs = 7
         self.motor_slice = slice(0,self.m_inputs)
         self.end_slice = slice(self.m_inputs,self.m_inputs+self.n_outputs)
         self.end_slice_xyz = slice(self.m_inputs,self.m_inputs+3)

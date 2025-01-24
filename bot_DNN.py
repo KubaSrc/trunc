@@ -3,7 +3,7 @@ from bot import *
 class aux_bot_DNN(aux_bot):
 
     def __init__(self,drive_path = None, pos_path = None, motor_path = None,
-                 train_forward = False, train_inverse = False, normalize = True, base_model = None):
+                 train_forward = False, train_inverse = False, normalize = True, base_model = None, weighted=True):
 
         # Size attributes
         MAX_SEQ_LENGTH = 1
@@ -11,7 +11,7 @@ class aux_bot_DNN(aux_bot):
 
         super().__init__(drive_path, pos_path, motor_path,
                  train_forward, train_inverse,
-                 normalize,BATCH_SIZE,MAX_SEQ_LENGTH,model_type='DNN')
+                 normalize,BATCH_SIZE,MAX_SEQ_LENGTH,model_type='DNN',weighted=weighted)
 
         # Constant for forward model
         self.EPOCHS = 100
@@ -58,11 +58,18 @@ class aux_bot_DNN(aux_bot):
 
         # Load inverse model instead
         if not train_inverse:
-            self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size)
-            self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_finalized_models/all_data_with_mass_9.876mm', map_location=self.device))
-            self.ik_net.eval()
-            self.ik_net.to(self.device)
-            print("[aux_bot_DNN] Inverse model succesfully loaded")
+            if weighted:
+                self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size)
+                self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_finalized_models/all_data_with_mass_9.876mm', map_location=self.device))
+                self.ik_net.eval()
+                self.ik_net.to(self.device)
+                print("[aux_bot_DNN] Weighted inverse model succesfully loaded")
+            else:
+                self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size,num_hidden_layers=1)
+                self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2024_02_20-00_20_51_9.539mm', map_location=self.device))
+                self.ik_net.eval()
+                self.ik_net.to(self.device)
+                print("[aux_bot_DNN] Non-weighted inverse model succesfully loaded")
 
     ########################
     # FORWARD NETWORK
@@ -91,22 +98,59 @@ class aux_bot_DNN(aux_bot):
     #########################
 
     class inverse_net(nn.Module):
-        def __init__(self, inputs=9, hidden=1024, outputs=7):
+        def __init__(self, inputs=9, hidden=1024, outputs=7, num_hidden_layers=2):
+            print(num_hidden_layers)
             super().__init__()
-            self.fc1 = nn.Linear(inputs,hidden)
-            self.fc2 = nn.Linear(hidden,hidden)
-            self.fc3 = nn.Linear(hidden,hidden)
-            self.fc4 = nn.Linear(hidden,outputs)
             self.input_size = inputs
             self.output_size = outputs
+            self.hidden_size = hidden
+            self.num_hidden_layers = num_hidden_layers
+            
+            # Define the input layer
+            self.fc1 = nn.Linear(inputs, hidden)
 
-        def forward(self,y):
+            # Dynamically create hidden layers as self.fc2, self.fc3, etc.
+            for i in range(2, num_hidden_layers + 2):  # Start from fc2
+                setattr(self, f'fc{i}', nn.Linear(hidden, hidden))
+            
+            # Define the output layer
+            setattr(self, f'fc{num_hidden_layers + 2}', nn.Linear(hidden, outputs))
+
+        def forward(self, y):
             y = torch.flatten(y, 1)
+            
+            # Pass through the input layer
             y = self.fc1(y)
             y = F.relu(y)
-            y = self.fc2(y)
-            y = F.relu(y)
-            y = self.fc3(y)
-            y = F.relu(y)
-            y = self.fc4(y)
+
+            # Pass through the hidden layers dynamically
+            for i in range(2, self.num_hidden_layers + 2):  # From fc2 to fc(num_hidden_layers + 1)
+                layer = getattr(self, f'fc{i}')
+                y = layer(y)
+                y = F.relu(y)
+            
+            # Pass through the output layer
+            output_layer = getattr(self, f'fc{self.num_hidden_layers + 2}')
+            y = output_layer(y)
             return y
+
+    # class inverse_net(nn.Module):
+    #     def __init__(self, inputs=9, hidden=1024, outputs=7):
+    #         super().__init__()
+    #         self.fc1 = nn.Linear(inputs,hidden)
+    #         self.fc2 = nn.Linear(hidden,hidden)
+    #         self.fc3 = nn.Linear(hidden,hidden)
+    #         self.fc4 = nn.Linear(hidden,outputs)
+    #         self.input_size = inputs
+    #         self.output_size = outputs
+
+    #     def forward(self,y):
+    #         y = torch.flatten(y, 1)
+    #         y = self.fc1(y)
+    #         y = F.relu(y)
+    #         y = self.fc2(y)
+    #         y = F.relu(y)
+    #         y = self.fc3(y)
+    #         y = F.relu(y)
+    #         y = self.fc4(y)
+    #         return y

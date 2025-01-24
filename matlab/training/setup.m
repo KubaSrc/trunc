@@ -5,7 +5,15 @@ addpath('./util/')
 % motor = armMotor();
 
 arm = robotArm();
+
 % arm.reset_arm()
+
+
+%% Record home position
+
+pos = [1000*0.004233654	1000*0.3243583	1000*0.04298552	-0.014648786	-0.036390118	0.007323412	0.999203471];
+
+save('./state/home_triad_measured.mat',"pos");
  
 %% Find home position
 
