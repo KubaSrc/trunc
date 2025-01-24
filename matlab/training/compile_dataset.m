@@ -28,17 +28,31 @@ T_full_sub = T_full(:,4:10);
 header = [T_full.Properties.VariableNames(4:10), {'mass'}, T_full.Properties.VariableNames(11:19)];
 T_new = [];
 
+figure(1); clf; hold on; grid on;
+
 % Pull in recent data
-for trial = 1:length(mass) 
+for trial = 2:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path);
-    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(mass(trial),[size(T_i,1),1]),table2array(T_i(:,11:19))]];
+    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(0,[size(T_i,1),1]),table2array(T_i(:,11:19))]];
+
+    s = scatter3(T_i.x_end_avg,T_i.y_end_avg,T_i.z_end_avg,'filled', 'MarkerFaceColor', colors(trial,:), 'MarkerEdgeColor','none','LineWidth',1);
+    s.SizeData=50;
+
 end
 
 T_new = array2table(T_new,"VariableNames",header);
 
-writetable(T_new, 'data/all_new_training_data.csv');
+writetable(T_new, 'data/all_new_zeroed_training_data.csv');
 
+% Define legend labels
+legendLabels = ["500 g", "527 g", "655 g", "978 g", "1233 g", "1542 g"];
 
+% Add labels, legend, and formatting
+xlabel('X-axis (mm)');
+ylabel('Y-axis (mm)');
+zlabel('Z-axis (mm)');
+title('Point Cloud Visualization');
+legend(legendLabels, 'Location', 'bestoutside');
 
 %% Plot data
 
