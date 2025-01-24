@@ -4,28 +4,37 @@ addpath('./util')
 close all; clear all; clc;
 warning('off', 'all');
 
-home_pos = load('./state/home_measured.mat').pos;
+% home_pos = load('./state/home_measured.mat').pos;
 
 %% Test cases
 
-evaluate('./inference/no_weight_circle_trajectory.mat','./experiments/circle_2025_01_23_20_37_01/positions.csv')
-title("Old Model (Payload 655g)")
+% evaluate('./inference/no_weight_circle_trajectory.mat','./experiments/circle_2025_01_23_20_37_01/positions.csv')
+% title("Old Model (Payload 655g)")
 
+evaluate('./inference/655g_circle_trajectory.mat','./experiments/2025_01_23_23_34_01/positions.csv','new')
+title("New Model (Payload 655g)")
 
 
 %% Helper function
 
-function[outputArg1,outputArg2] =  evaluate(ideal_trajectory,recorded_trajectory)
+function[outputArg1,outputArg2] =  evaluate(ideal_trajectory,recorded_trajectory,model_type)
     
     T_ideal = load(ideal_trajectory);
     T_ideal = T_ideal.wp;
     T_model = readtable(recorded_trajectory);
      
-    % Ideal points
-    T_x = (T_ideal(:,1)-T_ideal(1,1))./1000;
-    T_y = (T_ideal(:,3)-T_ideal(1,3))./1000;
-    T_z = -(T_ideal(:,2)-T_ideal(1,2))./1000;
-    
+    if model_type == 'new'
+        % Ideal points
+        T_x = (T_ideal(:,1)-T_ideal(1,1))./1000;
+        T_y = (T_ideal(:,2)-T_ideal(1,2))./1000;
+        T_z = (T_ideal(:,3)-T_ideal(1,3))./1000;
+    else
+        T_x = (T_ideal(:,1)-T_ideal(1,1))./1000;
+        T_y = (T_ideal(:,2)-T_ideal(1,2))./1000;
+        T_z = (T_ideal(:,3)-T_ideal(1,3))./1000;
+
+    end
+
     % Model points
     T_m_x = T_model.x_end_avg-T_model.x_end_avg(1);
     T_m_y = T_model.y_end_avg-T_model.y_end_avg(1);

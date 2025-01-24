@@ -467,12 +467,12 @@ z_plane = 80;
 theta = linspace(0,2*pi,n).';
 
 x_c = r.*cos(theta);
-y_c = r.*sin(theta);
-z_c = repmat(z_plane,size(theta));
+z_c = r.*sin(theta);
+y_c = repmat(z_plane,size(theta));
 
 wp = [zeros(1,3), tool_quat;
       x_c, y_c, z_c, repmat(tool_quat,[n,1])];
-wp = wp + home_triad_pos;
+wp(:,1:3) = wp(:,1:3) + home_triad_pos(1:3);
 wp = interp_waypoints(wp,100,"cubic");
 
 figure(1); clf; hold on; grid on
@@ -491,7 +491,7 @@ end
 wp = [wp, repmat(655,[size(wp, 1),1])];
 
 if export_traj
-    save('./inference/655g_unweighted_circle_trajectory.mat','wp')
+    save('./inference/655g_circle_trajectory.mat','wp')
 end
 
 %% 655 g test (circle) OLD MODEL -> batch_transformed to Xs, Qs
@@ -512,7 +512,7 @@ z_c = repmat(z_plane,size(theta));
 
 wp = [zeros(1,3), tool_quat;
       x_c, y_c, z_c, repmat(tool_quat,[n,1])];
-wp = wp + home_pos;
+wp(:,1:3) = wp(:,1:3) + [home_triad_pos(1),home_triad_pos(3),home_triad_pos(2)];
 wp = interp_waypoints(wp,100,"cubic");
 
 figure(1); clf; hold on; grid on
@@ -525,21 +525,23 @@ zlabel('Z-axis'); % Label for the z-axis
 
 % Apply compensations
 if export_traj
-    save('./inference/655g_circle_trajectory_IDEAL.mat','wp')
+    save('./inference/old_model_circle_trajectory_IDEAL.mat','wp')
 end
 
 T_full = readtable("./data/2024_02_19_21_08_57/positions_norm_full.csv");
 T_full(:,4:6) = T_full(:,4:6) - T_full(1,4:6);
-T_full_sub = T_full(:,4:10); 
+T_full_sub = T_full(:,4:10);
+T_full_sub(:,1:3) = (T_full_sub(:,1:3) + home_pos(1:3));
 
 T_new = array2table(wp,'VariableNames',T_full_sub.Properties.VariableNames);
-% T_new = weighted_transform(T_new);
-% T_new = batch_transform(T_full_sub,T_new);
+T_new = batch_transform(T_full_sub,T_new);
 
 wp = table2array(T_new);
 
+plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
+
 if export_traj
-    save('./inference/no_weight_circle_trajectory.mat','wp')
+    save('./inference/old_model_circle_trajectory.mat','wp')
 end
 
 %% Helper functions

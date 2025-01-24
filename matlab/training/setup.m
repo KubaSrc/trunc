@@ -6,7 +6,7 @@ addpath('./util/')
 
 arm = robotArm();
 
-% arm.reset_arm()
+arm.reset_arm()
 
 
 %% Record home position

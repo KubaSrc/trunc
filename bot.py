@@ -659,11 +659,14 @@ class aux_bot():
 
             savemat(self.drive_path + output_path,{"output": Y_pred})
 
+            print(Y_pred[0:3,0:3])
+
     # Run inverse prediction
     def direct_inverse_prediction(self,pos_data,comp=False,comp_path=None):
         with torch.no_grad():
 
             pos_data = np.array([pos_data])
+
 
             if comp and comp_path != None:
                 s = scipy.io.loadmat(self.drive_path + comp_path)['s']

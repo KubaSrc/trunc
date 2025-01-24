@@ -14,7 +14,7 @@ active_motor = false;
 cam_idx = 2;
 
 % Switch to programmed path
-programed = false;
+programed = true;
 
 if ~ programed
     trajectory_path = ['./inference/',trajectory,'_trajectory.mat'];
@@ -23,9 +23,16 @@ if ~ programed
     motor_path = ['./inference/',trajectory,'_motor.mat'];
     save_points_path = ['./inference/',trajectory,'_p_'];
 else
-    trajectory_path = "./inference/no_weight_circle_trajectory.mat"; % Desired trajectory (X,Q)
-    inputs_path = "./inferenceno_weight_circle_trajectory_inputs.mat"; % Motor positions from model
+    trajectory_path = "./inference/old_model_circle_trajectory.mat"; % Desired trajectory (X,Q)
+    inputs_path = "./inference/old_model_circle_trajectory_inputs.mat"; % Motor positions from model
 end
+
+trajectory_wp = load(trajectory_path).wp;
+
+% Loading trajectory info
+l_delta = load(inputs_path).output;
+num_points=size(l_delta,1);
+comp = load('./state/comp.mat').comp;
 
 %% Initial setup
 
@@ -35,7 +42,7 @@ dirName = datestr(currentDateTime, '_yyyy_mm_dd_HH_MM_SS');
 if ~ programed
     save_path = ['./experiments/',trajectory, dirName];
 else
-    save_path = [inputs_path,'/data'];
+    save_path = ['./experiments/', dirName];
 end
 photo_path = [save_path,'/pictures'];
 
@@ -55,11 +62,6 @@ arm = robotArm();
 arm.min_motor = -250;
 arm.max_motor = 150;
 motor = armMotor();
-
-% Loading trajectory info
-l_delta = load(inputs_path).output;
-num_points=size(l_delta,1);
-comp = load('./state/comp.mat').comp;
 
 if demo
     pause_mat = load(pause_path).pause_mat;
