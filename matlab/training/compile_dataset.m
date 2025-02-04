@@ -6,18 +6,28 @@ map = brewermap(9,'Set1');
 %% Load in data
 
 % Masses associated with each data set
-m0 = 400;
-mass = m0+[50,100,127,255,578,255+578,578+564];
-mass_vis = 4; % Default is -1 for all 
+%OLD m0 = 400;       
+%OLD mass = m0+[50,100,127,255,578,255+578,578+564];
+
+%The mass of the arm with nothing on it
+m0 = 583;
+
+%in respective order: The socket alone, the brush alone, mass C + brush, 
+%                       mass A + brush, mass A + mass C + brush 
+mass = m0+[48,146,146+250,146+580,146+255+580]; 
+mass = (mass/1000)*9.81;
+
+mass_vis = -1; % Default is -1 for all 
 
 root_path = "./data/";
-data_path = ["2024_02_19_21_08_57","-50g/2024_11_19_18_41_02","0g/2024_11_13_13_06_39","250g/2024_11_06_17_21_07","500gA/2024_11_07_15_54_15","750gA/2024_11_08_18_48_50","1000gAB\2024_11_09_16_32_42"];
+data_path = ["-50g_random/2025_02_03_12_52_20","0g_random/2025_02_02_16_29_02","250g_random/2025_01_29_11_38_12","500gA_random/2025_01_30_11_12_34","750g_random/2025_01_31_09_52_51"]; %,"1000gAB\2024_11_09_16_32_42"];
 file_path = "/positions.csv";
 
 colors = lines(7);
 
-% Pull in original data
-T_full = readtable(root_path+data_path(1)+"/positions_norm_full.csv");
+% Pull in first data to initialize the headers
+T_full = readtable(root_path+data_path(1)+file_path);
+
 % Re-zero the data
 T_full(:,4:6) = T_full(:,4:6) - T_full(1,4:6);
 T_full_sub = T_full(:,4:10);
@@ -25,15 +35,15 @@ T_full_sub = T_full(:,4:10);
 
 %% Save dataset with only new data
 
-header = [T_full.Properties.VariableNames(4:10), {'mass'}, T_full.Properties.VariableNames(11:19)];
+header = [T_full.Properties.VariableNames(4:10), {'f_t'}, T_full.Properties.VariableNames(11:19)];
 T_new = [];
 
 figure(1); clf; hold on; grid on;
 
 % Pull in recent data
-for trial = 2:length(mass) 
+for trial = 1:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path);
-    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(0,[size(T_i,1),1]),table2array(T_i(:,11:19))]];
+    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(mass(trial),[size(T_i,1),1]),table2array(T_i(:,11:19))]];
 
     s = scatter3(T_i.x_end_avg,T_i.y_end_avg,T_i.z_end_avg,'filled', 'MarkerFaceColor', colors(trial,:), 'MarkerEdgeColor','none','LineWidth',1);
     s.SizeData=50;
@@ -42,7 +52,7 @@ end
 
 T_new = array2table(T_new,"VariableNames",header);
 
-writetable(T_new, 'data/all_new_zeroed_training_data.csv');
+writetable(T_new, 'data/feb4_training_data.csv');
 
 % Define legend labels
 legendLabels = ["500 g", "527 g", "655 g", "978 g", "1233 g", "1542 g"];
