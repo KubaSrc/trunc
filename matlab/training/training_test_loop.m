@@ -29,7 +29,7 @@ cam = videoinput('winvideo', 1);
 set(cam, 'FramesPerTrigger', Inf);
 set(cam, 'ReturnedColorspace', 'rgb')
 cam.FrameGrabInterval = 1;  % Grab one frame every second
-w
+
 % Hardware
 arm = robotArm();
 motor = armMotor();

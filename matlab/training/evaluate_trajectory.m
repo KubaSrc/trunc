@@ -8,11 +8,20 @@ warning('off', 'all');
 
 %% Test cases
 
-% evaluate('./inference/no_weight_circle_trajectory.mat','./experiments/circle_2025_01_23_20_37_01/positions.csv')
-% title("Old Model (Payload 655g)")
+evaluate('./inference/old_model_circle_trajectory_IDEAL.mat','./experiments/2025_01_24_00_54_30/positions.csv','old')
+title("Old Model (Payload 655g)")
 
 evaluate('./inference/655g_circle_trajectory.mat','./experiments/2025_01_23_23_34_01/positions.csv','new')
 title("New Model (Payload 655g)")
+
+evaluate('./inference/655g_circle_zeroed_trajectory.mat','./experiments/2025_01_24_01_14_54/positions.csv','new')
+title("New Model no weight signal (Payload 655g)")
+
+% evaluate('./inference/655g_circle_zeroed_trajectory.mat','./experiments/2025_01_24_01_14_54/positions.csv','new')
+% title("New Model no weight signal (Payload 655g)")
+% 
+% evaluate('./inference/655g_circle_zeroed_trajectory.mat','./experiments/2025_01_24_01_14_54/positions.csv','new')
+% title("New Model no weight signal (Payload 655g)")
 
 
 %% Helper function
@@ -30,8 +39,8 @@ function[outputArg1,outputArg2] =  evaluate(ideal_trajectory,recorded_trajectory
         T_z = (T_ideal(:,3)-T_ideal(1,3))./1000;
     else
         T_x = (T_ideal(:,1)-T_ideal(1,1))./1000;
-        T_y = (T_ideal(:,2)-T_ideal(1,2))./1000;
-        T_z = (T_ideal(:,3)-T_ideal(1,3))./1000;
+        T_y = (T_ideal(:,3)-T_ideal(1,3))./1000;
+        T_z = -((T_ideal(:,2)-T_ideal(1,2)))./1000;
 
     end
 

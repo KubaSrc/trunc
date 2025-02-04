@@ -4,7 +4,7 @@ addpath('./util/')
 % Create an instance of the arm and motor
 % motor = armMotor();
 
-arm = robotArm();
+arm = robotArm(3);
 
 arm.reset_arm()
 

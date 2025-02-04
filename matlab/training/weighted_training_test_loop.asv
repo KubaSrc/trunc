@@ -13,7 +13,7 @@ randomized = true;
 
 %% Initial setup
 
-weight = '-50g/';
+weight = '500g_random/';
 
 % Save path
 currentDateTime = datetime('now');
@@ -47,7 +47,7 @@ set(cam_3, 'ReturnedColorspace', 'rgb')
 cam_3.FrameGrabInterval = 1;  % Grab one frame every second
 
 % Hardware
-arm = robotArm();
+arm = robotArm(1);
 % motor = armMotor();
 comp = load("./state/comp.mat").comp;
 
@@ -57,7 +57,7 @@ training_waypoints = load('./trajectory/training_waypoints.mat').points;
 
 num_points = size(training_waypoints,1);
 % num_trajectories = size(training_waypoints,3);
-num_trajectories = 15;
+num_trajectories = 20;
 
 % Initialize output
 output = cell(num_points*num_trajectories + 1, 19);
@@ -79,31 +79,87 @@ for r = traj_start:num_trajectories
 
     slack = zeros([1,9]);
 
+    if randomized
+        r = randi(size(training_waypoints,3));
+    end
+
+    fprintf('Random Trajectory Index: %d\n', r);
+
     for p = 1:num_points
 
         fprintf('Point: %d/%d\n', p,num_points);
         fprintf('========================\n');
-        if randomized
-            r = randi(size(training_waypoints,3));
-        end
         delta_pos = training_waypoints(p,:,r); 
         pos = comp+training_waypoints(p,:,r);
 
         % Anti-slack compensation
         slack_idx = [3,2,1,6,5,4,9,8,7];
-        p_t = 3.5;
-        r_t = 1;
+        p_t = 2;
+        r_t = 0.75;
 
-        if anti_slack && mod(p-1,slack_spacing) == 0
+
+        % Set arm to new position
+        disp("Moving arm.")
+        slack = 0.5.*slack; 
+        arm.set_pos(pos+slack)
+
+        % Wait for it to settle
+        settled = false;
+        max_settle_time = 15; % Maximum time to wait for settling (in seconds)
+        threshold = 0.75; % Threshold for movement (in mm)
+        rolling_window_time = 1; % Time window to calculate movement (in seconds)
+        sample_rate = 0.1; % Sampling interval (in seconds)
+        max_samples = rolling_window_time / sample_rate; % Maximum samples in the rolling window
+        
+        poses = []; % Initialize array to store rolling window of positions
+        start_time = tic; % Start timer
+        
+
+        while ~settled
+            % Get the current pose of the arm
+            pose_i = arm.get_pose();
+            
+            % Extract the x, y, z position
+            position_i = 1000.*[pose_i.x, pose_i.y, pose_i.z];
+            
+            % Append the current position to the rolling window
+            poses = [poses; position_i];
+            
+            % Ensure rolling window size does not exceed max_samples
+            if size(poses, 1) > max_samples
+                poses(1, :) = []; % Remove oldest position
+            end
+            
+            % Calculate movement if we have enough samples
+            if size(poses, 1) == max_samples
+                % Compute the maximum movement within the rolling window
+                max_movement = max(vecnorm(diff(poses, 1, 1), 2, 2));
+                
+                % Check if the movement is below the threshold
+                if max_movement < threshold
+                    settled = true;
+                    disp('Arm has settled.');
+                end
+            end
+            
+            % Check for timeout
+            if toc(start_time) > max_settle_time
+                disp('Timeout reached without settling.');
+                break;
+            end
+            
+            % Pause briefly to control the sample rate
+            pause(sample_rate);
+        end
+
+        % if anti_slack && mod(p-1,slack_spacing) == 0
+        if anti_slack
             % Loop through each cable
             disp('Removing slack')
-            slack = 0.5.*slack; 
-            arm.set_pos(pos+slack)
-            pause(pause_length)
             for i = 1:length(slack_idx)
                 slack_removed = false;
+                pause(0.25)
                 tool_0 = arm.get_pose();
-                pause(0.5)
                 while ~slack_removed
                     idx = slack_idx(i);
                     slack(idx) = slack(idx)-.075;

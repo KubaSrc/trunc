@@ -494,6 +494,46 @@ if export_traj
     save('./inference/655g_circle_trajectory.mat','wp')
 end
 
+%% 655 g test (circle) NEW MODEL zeroed
+
+export_traj = true;
+
+tool_rot = eye(3);
+tool_quat = rotm2quat(tool_rot);
+
+n = 20;
+r = 50;
+z_plane = 80;
+theta = linspace(0,2*pi,n).';
+
+x_c = r.*cos(theta);
+z_c = r.*sin(theta);
+y_c = repmat(z_plane,size(theta));
+
+wp = [zeros(1,3), tool_quat;
+      x_c, y_c, z_c, repmat(tool_quat,[n,1])];
+wp(:,1:3) = wp(:,1:3) + home_triad_pos(1:3);
+wp = interp_waypoints(wp,100,"cubic");
+
+figure(1); clf; hold on; grid on
+
+plot3(wp(:,1), wp(:,2), wp(:,3), 'x-', 'LineWidth', 1.5); % 'k:' makes the line black and dotted, 'LineWidth' sets the thickness
+
+xlabel('X-axis'); % Label for the x-axis
+ylabel('Y-axis'); % Label for the y-axis
+zlabel('Z-axis'); % Label for the z-axis
+
+% Apply compensations
+if export_traj
+    save('./inference/655g_circle_zeroed_trajectory_IDEAL.mat','wp')
+end
+
+wp = [wp, repmat(0,[size(wp, 1),1])];
+
+if export_traj
+    save('./inference/655g_circle_zeroed_trajectory.mat','wp')
+end
+
 %% 655 g test (circle) OLD MODEL -> batch_transformed to Xs, Qs
 
 export_traj = true;

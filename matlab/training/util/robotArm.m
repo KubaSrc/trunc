@@ -13,16 +13,23 @@ classdef robotArm
         home_relative;
         arm_ID = 8
         stick_ID = 9;
+        speed=2;
     end
 
     methods
         % Constructor
-        function obj = robotArm()
+        function obj = robotArm(speed)
             addpath('./util/NatNet_SDK_4.1/NatNetSDK/Samples/Matlab');
             addpath('./util/')
+
+            % Set speed if provided by user
+            if nargin > 0
+                obj.speed = speed; % Override default value
+            end
+
             if ~exist('obj.port', 'var')
                 obj.port = serialport("COM4", 9600);
-                initialize_servos(obj.port, obj.channels, obj.pause_length, obj.comp);
+                initialize_servos(obj.port, obj.channels, obj.pause_length, obj.comp, obj.speed);
                 pause(5);
             end
             

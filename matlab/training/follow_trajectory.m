@@ -7,7 +7,7 @@ pulse_length = 0;
 noise_samples = 15;
 model_type = 'DNN';
 trajectory = 'circle';
-record = true;
+record = false;
 demo = false;
 active_pause = false;
 active_motor = false;
@@ -23,8 +23,8 @@ if ~ programed
     motor_path = ['./inference/',trajectory,'_motor.mat'];
     save_points_path = ['./inference/',trajectory,'_p_'];
 else
-    trajectory_path = "./inference/old_model_circle_trajectory.mat"; % Desired trajectory (X,Q)
-    inputs_path = "./inference/old_model_circle_trajectory_inputs.mat"; % Motor positions from model
+    trajectory_path = "./inference/655g_circle_trajectory.mat"; % Desired trajectory (X,Q)
+    inputs_path = "./inference/all_new_655g_inputs.mat"; % Motor positions from model
 end
 
 trajectory_wp = load(trajectory_path).wp;

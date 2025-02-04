@@ -60,7 +60,7 @@ class aux_bot_DNN(aux_bot):
         if not train_inverse:
             if weighted:
                 self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size)
-                model_path = drive_path + '/models/Model_comparison/New_only_9.804mm'
+                model_path = drive_path + '/models/Model_comparison/New_only_zeroed_12.091mm'
                 self.ik_net.load_state_dict(torch.load(model_path, map_location=self.device))
                 self.ik_net.eval()
                 self.ik_net.to(self.device)
@@ -68,7 +68,7 @@ class aux_bot_DNN(aux_bot):
                 print("[aux_bot_DNN] Model path: ", model_path)
             else:
                 self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size,num_hidden_layers=1)
-                self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2024_02_20-00_20_51_9.539mm', map_location=self.device))
+                self.ik_net.load_state_dict(torch.load(drive_path + '/models/DNN_inverse_2024_02_21-16_08_24_10.006mm', map_location=self.device))
                 self.ik_net.eval()
                 self.ik_net.to(self.device)
                 print("[aux_bot_DNN] Non-weighted inverse model succesfully loaded")
