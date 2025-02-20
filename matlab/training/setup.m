@@ -2,11 +2,11 @@ clear all; close all; clc;
 addpath('./util/')
 
 % Create an instance of the arm and motor
-% motor = armMotor();
+motor = armMotor();
 
 arm = robotArm(3);
 
-arm.reset_arm()
+% arm.reset_arm()
 
 
 %% Record home position
@@ -82,7 +82,7 @@ end
 
 motor.pulse(5)
 
-%% Set pictures pose
+%% Set pictures pose 1
 
 end_pose = [
     1393.00;
@@ -94,6 +94,22 @@ end_pose = [
     1686.75;
     1701.50;
     1681.75];
+
+arm.set_pos_target(end_pose)
+
+
+%% Set pictures pose 2
+
+end_pose = [
+    1500.75;
+    1642.75;
+    1716.00;
+    1373.50;
+    1466.50;
+    1569.25;
+    1721.00;
+    1740.50;
+    1706.25];
 
 arm.set_pos_target(end_pose)
 

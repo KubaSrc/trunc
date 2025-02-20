@@ -454,7 +454,7 @@ end
 plot_triad(wp(:,1),wp(:,2),wp(:,3),[wp(:,7),wp(:,4),wp(:,5),wp(:,6)])
 
 
-%% 655 g test (circle) NEW MODEL
+%% 250g plate test (circle) NEW MODEL
 
 export_traj = true;
 
@@ -485,13 +485,17 @@ zlabel('Z-axis'); % Label for the z-axis
 
 % Apply compensations
 if export_traj
-    save('./inference/655g_circle_trajectory_IDEAL.mat','wp')
+    save('./inference/250gPlate_circle_trajectory_IDEAL.mat','wp')
 end
 
-wp = [wp, repmat(655,[size(wp, 1),1])];
+% Specify Ft here
+Ft = 9.60399;
+wp = [wp, repmat(Ft,[size(wp, 1),1])];
 
 if export_traj
-    save('./inference/655g_circle_trajectory.mat','wp')
+    wp_path = sprintf('./inference/%d_circle_trajectory.mat',Ft);
+    disp(wp_path)
+    save(wp_path,'wp')
 end
 
 %% 655 g test (circle) NEW MODEL zeroed

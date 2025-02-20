@@ -17,7 +17,7 @@ m0 = 583;
 mass = m0+[48,146,146+250,146+580,146+255+580]; 
 mass = (mass/1000)*9.81;
 
-mass_vis = -1; % Default is -1 for all 
+mass_vis = 3; % Default is -1 for all 
 
 root_path = "./data/";
 data_path = ["-50g_random/2025_02_03_12_52_20","0g_random/2025_02_02_16_29_02","250g_random/2025_01_29_11_38_12","500gA_random/2025_01_30_11_12_34","750g_random/2025_01_31_09_52_51"]; %,"1000gAB\2024_11_09_16_32_42"];
@@ -26,43 +26,53 @@ file_path = "/positions.csv";
 colors = lines(7);
 
 % Pull in first data to initialize the headers
-T_full = readtable(root_path+data_path(1)+file_path);
-
-% Re-zero the data
-T_full(:,4:6) = T_full(:,4:6) - T_full(1,4:6);
-T_full_sub = T_full(:,4:10);
-
+T_full = readtable(root_path+data_path(1)+file_path,"Range",[1,4]);
 
 %% Save dataset with only new data
 
-header = [T_full.Properties.VariableNames(4:10), {'f_t'}, T_full.Properties.VariableNames(11:19)];
+plot_data = false;
+
+header = [T_full.Properties.VariableNames(1:7), {'f_t'}, T_full.Properties.VariableNames(8:16)];
 T_new = [];
 
-figure(1); clf; hold on; grid on;
+if plot_data
+    figure(1); clf; hold on; grid on;
+end
 
 % Pull in recent data
 for trial = 1:length(mass) 
-    T_i = readtable(root_path+data_path(trial)+file_path);
-    T_new = [T_new;[table2array(T_i(:,4:10)),repmat(mass(trial),[size(T_i,1),1]),table2array(T_i(:,11:19))]];
+    T_i = readtable(root_path+data_path(trial)+file_path,"Range",[1,4]);
 
-    s = scatter3(T_i.x_end_avg,T_i.y_end_avg,T_i.z_end_avg,'filled', 'MarkerFaceColor', colors(trial,:), 'MarkerEdgeColor','none','LineWidth',1);
-    s.SizeData=50;
+    % Align quaternions with [1,0,0,0] home position
+    for i = 1:(size(T_i,1)-1)/100
+        T_i_snip = T_i((i-1)*100+1:i*100,:);
+        T_i_snip_new = batch_quaternion_transform(T_i_snip);
+        T_new = [T_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
+    end
+
+    if plot_data
+        s = scatter3(T_i.x_end_avg,T_i.y_end_avg,T_i.z_end_avg,'filled', 'MarkerFaceColor', colors(trial,:), 'MarkerEdgeColor','none','LineWidth',1);
+        s.SizeData=50;
+    end
 
 end
 
 T_new = array2table(T_new,"VariableNames",header);
 
-writetable(T_new, 'data/feb4_training_data.csv');
+writetable(T_new, 'data/feb4_training_data_fixed_quat.csv');
 
-% Define legend labels
-legendLabels = ["500 g", "527 g", "655 g", "978 g", "1233 g", "1542 g"];
-
-% Add labels, legend, and formatting
-xlabel('X-axis (mm)');
-ylabel('Y-axis (mm)');
-zlabel('Z-axis (mm)');
-title('Point Cloud Visualization');
-legend(legendLabels, 'Location', 'bestoutside');
+if plot_data
+    
+    % Define legend labels
+    legendLabels = ["500 g", "527 g", "655 g", "978 g", "1233 g", "1542 g"];
+    
+    % Add labels, legend, and formatting
+    xlabel('X-axis (mm)');
+    ylabel('Y-axis (mm)');
+    zlabel('Z-axis (mm)');
+    title('Point Cloud Visualization');
+    legend(legendLabels, 'Location', 'bestoutside');
+end
 
 %% Plot data
 
@@ -100,8 +110,6 @@ for trial = 2:length(mass)
         
         T_i(:,4:6) = T_i(:,4:6) - T_i(1,4:6);
         T_i_sub = T_i(:,4:10);
-        T_i_sub = weighted_transform(T_i_sub);
-        T_i_sub = batch_transform(T_full_sub,T_i_sub);
         
         %Creating table for the csv of each iteration.
         T_i_csv = T_i(:,4:19);

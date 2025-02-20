@@ -24,7 +24,7 @@ if ~ programed
     save_points_path = ['./inference/',trajectory,'_p_'];
 else
     trajectory_path = "./inference/655g_circle_trajectory.mat"; % Desired trajectory (X,Q)
-    inputs_path = "./inference/all_new_655g_inputs.mat"; % Motor positions from model
+    inputs_path = "./inference/feb4_655g_inputs.mat"; % Motor positions from model
 end
 
 trajectory_wp = load(trajectory_path).wp;
@@ -142,7 +142,6 @@ delete(cam)
 clear cam
 
 arm.reset_arm();
-
 
 % Save output file
 if record

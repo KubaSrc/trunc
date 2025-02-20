@@ -26,12 +26,47 @@ classdef robotArm
             if nargin > 0
                 obj.speed = speed; % Override default value
             end
+        if ~exist('obj.port', 'var')
+            % Define target device identifiers.
+            targetVID = 'VID_1FFB';
+            targetPID = 'PID_008A';
+            targetMI  = 'MI_00';  % We want the device with MI_00 (COM4)
 
-            if ~exist('obj.port', 'var')
-                obj.port = serialport("COM4", 9600);
-                initialize_servos(obj.port, obj.channels, obj.pause_length, obj.comp, obj.speed);
-                pause(5);
+            
+            % Query Win32_PnPEntity to include all COM ports.
+            [status, cmdout] = system('wmic path Win32_PnPEntity where "Name like ''%(COM%''" get Name, DeviceID, PNPDeviceID');
+            if status ~= 0
+                error('Failed to retrieve device information.');
             end
+            
+            % Split the output into lines.
+            lines = strsplit(cmdout, '\n');
+            comPort = '';
+            
+            % Loop through each line to find the device matching your VID and PID.
+            for i = 1:length(lines)
+                line = strtrim(lines{i});
+                if contains(line, targetVID) && contains(line, targetPID) && contains(line,targetMI)
+                    disp(line)
+                    % Extract the COM port using a regex (e.g., "COM6")
+                    tokens = regexp(line, '(COM\d+)', 'match');
+                    if ~isempty(tokens)
+                        comPort = tokens{1};
+                        break;
+                    end
+                end
+            end
+            
+            if isempty(comPort)
+                error('Target USB device with %s and %s not found.', targetVID, targetPID);
+            end
+            
+            % Open the serial port using the discovered COM port.
+            obj.port = serialport(comPort, 9600);
+            disp(comPort)
+            initialize_servos(obj.port, obj.channels, obj.pause_length, obj.comp, obj.speed);
+            pause(5);
+        end
             
             % Connect to motive
             if ~exist('nnc','var')

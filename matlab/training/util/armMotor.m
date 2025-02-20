@@ -15,14 +15,50 @@ classdef armMotor
                 delete(objs);
             end
 
-            obj.s = serial('COM6', 'BaudRate', 9600); % Create serial object
+            % Define target device identifiers for the CH340 device.
+            targetVID = 'VID_1A86';
+            targetPID = 'PID_7523';
+            
+            % Query Win32_PnPEntity to include all COM ports.
+            [status, cmdout] = system('wmic path Win32_PnPEntity where "Name like ''%(COM%''" get Name, DeviceID, PNPDeviceID');
+            if status ~= 0
+                error('Failed to retrieve device information.');
+            end
+            
+            % Split the output into lines.
+            lines = strsplit(cmdout, '\n');
+            comPort = '';
+            
+            % Loop through each line to find the device matching your target VID and PID.
+            for i = 1:length(lines)
+                line = strtrim(lines{i});
+                if contains(line, targetVID) && contains(line, targetPID)
+                    % Extract the COM port using a regular expression (e.g., "COM6")
+                    tokens = regexp(line, '(COM\d+)', 'match');
+                    if ~isempty(tokens)
+                        comPort = tokens{1};
+                        break;
+                    end
+                end
+            end
+            
+            if isempty(comPort)
+                error('Target USB device with %s and %s not found.', targetVID, targetPID);
+            end
+            
+            % Open the serial port using the discovered COM port.
+            obj.s = serialport(comPort, 9600);
+
+            flushinput(obj.s);
+            flushoutput(obj.s);
+
             fopen(obj.s); % Open serial connection
             pause(2); % Allow some time for Arduino to reset and establish a serial connection
         end
         
         % Method to turn on the relay
-        function turnOnRelay(obj)
-            fprintf(obj.s, '%c', '1'); % Send character '1' to Arduino for turning on the relay
+        function turnOnRelay(obj, t)
+            fprintf(obj.s, '%.2f\n', t); % Send character '1' to Arduino for turning on the relay
         end
         
         % Method to turn off the relay
@@ -32,11 +68,9 @@ classdef armMotor
         
         % Method to pulse the motor for a fixed duration
         function pulse(obj, t)
-            if t > 0
-                obj.turnOnRelay();
-                pause(t);
-                obj.turnOffRelay();
-            end
+            obj.turnOnRelay(t);
+            % pause(t);
+            % obj.turnOffRelay();
         end
         
         % Destructor method to close serial port when object is deleted

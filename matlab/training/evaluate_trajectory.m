@@ -8,6 +8,9 @@ warning('off', 'all');
 
 %% Test cases
 
+evaluate('./inference/250gPlate_circle_trajectory_IDEAL.mat','./experiments/_2025_02_04_20_16_34/positions.csv','new')
+title("LATEST Model (Feb4) (Payload 655g)")
+
 evaluate('./inference/old_model_circle_trajectory_IDEAL.mat','./experiments/2025_01_24_00_54_30/positions.csv','old')
 title("Old Model (Payload 655g)")
 
