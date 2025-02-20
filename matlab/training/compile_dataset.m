@@ -73,6 +73,58 @@ if plot_data
     title('Point Cloud Visualization');
     legend(legendLabels, 'Location', 'bestoutside');
 end
+%% 
+% Extract positions from the table
+x = T_i_snip_new.x_end_avg;
+y = T_i_snip_new.y_end_avg;
+z = T_i_snip_new.z_end_avg;
+
+% Extract quaternion components (assumed [w, x, y, z] order)
+qw = T_i_snip_new.qw_end_avg;
+qx = T_i_snip_new.qx_end_avg;
+qy = T_i_snip_new.qy_end_avg;
+qz = T_i_snip_new.qz_end_avg;
+
+% Create a new figure
+figure; 
+hold on; 
+grid on; 
+axis equal;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Orientation Triads for 100-Point Snippet');
+
+% Plot the position points
+plot3(x, y, z, 'ko', 'MarkerFaceColor', 'k');
+
+% Define a scaling factor for the triad vectors
+scale = 0.01;  % adjust as needed for visualization
+
+% Loop through each point and plot the triad
+for k = 1:height(T_i_snip_new)
+    % Build quaternion for the current point
+    quat = [qw(k), qx(k), qy(k), qz(k)];
+    
+    % Convert quaternion to rotation matrix (each column is one axis vector)
+    R = quat2rotm(quat);
+    
+    % Extract the axes directions from the rotation matrix
+    x_axis = R(:,1);
+    y_axis = R(:,2);
+    z_axis = R(:,3);
+    
+    % Position for this point
+    p = [x(k), y(k), z(k)];
+    
+    % Plot triad arrows using quiver3:
+    quiver3(p(1), p(2), p(3), scale*x_axis(1), scale*x_axis(2), scale*x_axis(3), ...
+            'r', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+    quiver3(p(1), p(2), p(3), scale*y_axis(1), scale*y_axis(2), scale*y_axis(3), ...
+            'g', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+    quiver3(p(1), p(2), p(3), scale*z_axis(1), scale*z_axis(2), scale*z_axis(3), ...
+            'b', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+end
+
+hold off;
 
 %% Plot data
 
