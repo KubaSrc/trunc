@@ -14,7 +14,7 @@ active_motor = false;
 
 approach_inputs_path = "././inference/instron_approach_0_inputs.mat"; % Motor positions from model
 collect_inputs_path = "././inference/instron_collect_0_inputs.mat"; % Motor positions from model
-save_path = './experiments/instron_collect_0';
+combined_inputs_path = "././inference/instron_combined_0_inputs.mat"; % Motor positions from model
 
 % Loading trajectory info for approach
 l_delta_approach = load(approach_inputs_path).output;
@@ -25,6 +25,15 @@ comp = load('./state/comp.mat').comp;
 l_delta_collect = load(collect_inputs_path).output;
 num_points_collect=size(l_delta_collect,1);
 
+% Loading trajectory info for approach
+l_delta_combined = load(combined_inputs_path).output;
+num_points_combined=size(l_delta_combined,1);
+
+
+
+figure(1); hold on
+plot(1:size(l_delta_collect,1),l_delta_collect(:,1))
+plot(1:size(l_delta_approach,1),l_delta_approach(:,1))
 
 %% Initial setup
 
@@ -50,15 +59,15 @@ end
 
 X = input("Press enter to continue");
 
-% Loop to initial position
-for p = 1:num_points_collect
-    
-    arm.set_pos_delta(l_delta_collect(p,:))
-    pause(0.25)
-
-end
-
-X = input("Press enter to finish test");
-
-arm.reset_arm();
+% % Loop to initial position
+% for p = 1:num_points_collect
+% 
+%     arm.set_pos_delta(l_delta_collect(p,:))
+%     pause(0.25)
+% 
+% end
+% 
+% X = input("Press enter to finish test");
+% 
+% arm.reset_arm();
 

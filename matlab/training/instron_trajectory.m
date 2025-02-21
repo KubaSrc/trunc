@@ -27,9 +27,12 @@ Q = [0,0,0,1];
 XQ = [X,Q];
 
 
-Fn = 0:0.25:7;
-Fg = -F_arm - F_tool;
-Ft = -Fg - Fn;
+% Fn = 0:0.25:7;
+% Fg = -F_arm - F_tool;
+% Ft = -Fg - Fn;
+Ft = [6.19011,7.15149,9.60399,12.84129,15.3428];
+
+
 %% Trajectory to move brush to position
 
 wp = [home_triad_pos;XQ];
@@ -55,6 +58,14 @@ wp_collect = wp;
 % Apply compensations
 if export_traj
     save('./inference/instron_collect_0.mat','wp')
+end
+
+%% Combined
+
+wp = [wp_approach;wp_collect];
+
+if export_traj
+    save('./inference/instron_combined_0.mat','wp')
 end
 
 %% Helpfer functions

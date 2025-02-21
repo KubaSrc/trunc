@@ -58,7 +58,7 @@ class aux_bot():
     # DATA PRE-PROCESSING
     ############################
     def normalize_data(self,data,d_type="full"):
-        temp = self.max_scale - self.min_scale#DEBUGGING
+        temp = self.max_scale - self.min_scale #DEBUGGING
         temp[temp == 0] = 1 #DEBUGGING
         if d_type == "full":
             data = (data-self.min_scale)/(temp)

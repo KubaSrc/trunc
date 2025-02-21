@@ -5,7 +5,7 @@ addpath('./util/')
 motor = armMotor();
 
 arm = robotArm(3);
-
+    
 % arm.reset_arm()
 
 
@@ -33,7 +33,7 @@ end
 set_comp = false;
 
 home = load('./state/home').home;
-delta_l = -70;
+delta_l = -59;
 comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
 comp = home + comp_delta;
 
