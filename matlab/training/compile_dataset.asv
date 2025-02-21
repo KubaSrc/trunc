@@ -47,7 +47,7 @@ for trial = 1:length(mass)
     for i = 1:(size(T_i,1)-1)/100
         T_i_snip = T_i((i-1)*100+1:i*100,:);
         T_i_snip_new = batch_quaternion_transform(T_i_snip);
-        T_new = [T_new;[table2array(T_i(:,4:10)),repmat(mass(trial),[size(T_i,1),1]),table2array(T_i(:,11:19))]];
+        T_new = [T_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
     end
 
     if plot_data
@@ -57,9 +57,14 @@ for trial = 1:length(mass)
 
 end
 
+% Create table
 T_new = array2table(T_new,"VariableNames",header);
 
-% writetable(T_new, 'data/feb4_training_data_fixed_quat.csv');
+% Correct for any flip mid trajectory
+q_slice = T_new.qw_end_avg < 0.8;
+T_new(q_slice,:) = batch_quaternion_transform(T_new(q_slice,:));
+
+writetable(T_new, 'data/feb4_training_data_doublefixed_quat.csv');
 
 if plot_data
     
@@ -73,6 +78,111 @@ if plot_data
     title('Point Cloud Visualization');
     legend(legendLabels, 'Location', 'bestoutside');
 end
+
+%% 
+% Extract positions from the table
+x = T_i_snip.x_end_avg;
+y = T_i_snip.y_end_avg;
+z = T_i_snip.z_end_avg;
+
+% Extract quaternion components (assumed [w, x, y, z] order)
+qw = T_i_snip.qw_end_avg;
+qx = T_i_snip.qx_end_avg;
+qy = T_i_snip.qy_end_avg;
+qz = T_i_snip.qz_end_avg;
+
+% Create a new figure
+figure; 
+hold on; 
+grid on; 
+axis equal;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Orientation Triads for 100-Point Snippet');
+
+% Plot the position points
+plot3(x, y, z, 'ko', 'MarkerFaceColor', 'k');
+
+% Define a scaling factor for the triad vectors
+scale = 0.01;  % adjust as needed for visualization
+
+% Loop through each point and plot the triad
+for k = 1:height(T_i_snip_new)
+    % Build quaternion for the current point
+    quat = [qw(k), qx(k), qy(k), qz(k)];
+    
+    % Convert quaternion to rotation matrix (each column is one axis vector)
+    R = quat2rotm(quat);
+    
+    % Extract the axes directions from the rotation matrix
+    x_axis = R(:,1);
+    y_axis = R(:,2);
+    z_axis = R(:,3);
+    
+    % Position for this point
+    p = [x(k), y(k), z(k)];
+    
+    % Plot triad arrows using quiver3:
+    quiver3(p(1), p(2), p(3), scale*x_axis(1), scale*x_axis(2), scale*x_axis(3), ...
+            'r', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+    quiver3(p(1), p(2), p(3), scale*y_axis(1), scale*y_axis(2), scale*y_axis(3), ...
+            'g', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+    quiver3(p(1), p(2), p(3), scale*z_axis(1), scale*z_axis(2), scale*z_axis(3), ...
+            'b', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+end
+
+hold off;
+%% 
+% Extract positions from the table
+x = T_i_snip_new.x_end_avg;
+y = T_i_snip_new.y_end_avg;
+z = T_i_snip_new.z_end_avg;
+
+% Extract quaternion components (assumed [w, x, y, z] order)
+qw = T_i_snip_new.qw_end_avg;
+qx = T_i_snip_new.qx_end_avg;
+qy = T_i_snip_new.qy_end_avg;
+qz = T_i_snip_new.qz_end_avg;
+
+% Create a new figure
+figure; 
+hold on; 
+grid on; 
+axis equal;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Orientation Triads for 100-Point Snippet');
+
+% Plot the position points
+plot3(x, y, z, 'ko', 'MarkerFaceColor', 'k');
+
+% Define a scaling factor for the triad vectors
+scale = 0.01;  % adjust as needed for visualization
+
+% Loop through each point and plot the triad
+for k = 1:height(T_i_snip_new)
+    % Build quaternion for the current point
+    quat = [qw(k), qx(k), qy(k), qz(k)];
+    
+    % Convert quaternion to rotation matrix (each column is one axis vector)
+    R = quat2rotm(quat);
+    
+    % Extract the axes directions from the rotation matrix
+    x_axis = R(:,1);
+    y_axis = R(:,2);
+    z_axis = R(:,3);
+    
+    % Position for this point
+    p = [x(k), y(k), z(k)];
+    
+    % Plot triad arrows using quiver3:
+    quiver3(p(1), p(2), p(3), scale*x_axis(1), scale*x_axis(2), scale*x_axis(3), ...
+            'r', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+    quiver3(p(1), p(2), p(3), scale*y_axis(1), scale*y_axis(2), scale*y_axis(3), ...
+            'g', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+    quiver3(p(1), p(2), p(3), scale*z_axis(1), scale*z_axis(2), scale*z_axis(3), ...
+            'b', 'LineWidth', 1.5, 'MaxHeadSize', 1);
+end
+
+hold off;
 
 %% Plot data
 

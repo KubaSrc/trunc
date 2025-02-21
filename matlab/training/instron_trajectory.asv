@@ -23,12 +23,11 @@ plate = bodies(1);
 
 %% Define scrubbing position 
 X = 1000.*[plate.x,plate.y+y_offset,plate.z];
-% X = [4.2336540,324.35831,42.985519];
 Q = [0,0,0,1];
 XQ = [X,Q];
 
 
-Fn = 12:-0.25:6;
+Fn = 7:-0.25:0;
 Fg = F_arm + F_tool;
 Ft = Fg - Fn;
 %% Trajectory to move brush to position
@@ -40,6 +39,7 @@ wp(:,4:end) = repmat([0,0,0,1],[size(wp,1),1]);
 Ft_start = repmat(Ft(1),[size(wp,1),1]);
 
 wp = [wp,Ft_start];
+wp_approach = wp;
 
 % Apply compensations
 if export_traj
@@ -49,7 +49,8 @@ end
 %% This is the data collection trajectory
 
 XQ_full = [repmat(XQ,size(Ft.')),Ft.'];
-
+wp = XQ_full;
+wp_collect = wp;
 
 % Apply compensations
 if export_traj

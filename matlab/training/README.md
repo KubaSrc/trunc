@@ -78,3 +78,8 @@ Compares a set of input waypoints to the measured waypoints infered from the mod
     - Open *evaluate_trajectory.m*.
     - Change "T_ideal" and "T_model" to the appropriate files.
     - Run and compare.
+
+
+# Data Structure
+
+The bot is currently trained on data relative to the instron's coordinate frame. Positional values are scaled by 1000 to have units of millimeters.

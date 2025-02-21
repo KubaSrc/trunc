@@ -27,18 +27,19 @@ Q = [0,0,0,1];
 XQ = [X,Q];
 
 
-Fn = 7:-0.25:0;
-Fg = F_arm + F_tool;
-Ft = Fg - Fn;
+Fn = 0:0.25:7;
+Fg = -F_arm - F_tool;
+Ft = -Fg - Fn;
 %% Trajectory to move brush to position
 
 wp = [home_triad_pos;XQ];
 wp =  interp_waypoints(wp,100,"linear");
-wp(:,4:end) = repmat([1,0,0,0],[size(wp,1),1]);
+wp(:,4:end) = repmat([0,0,0,1],[size(wp,1),1]);
 
 Ft_start = repmat(Ft(1),[size(wp,1),1]);
 
 wp = [wp,Ft_start];
+wp_approach = wp;
 
 % Apply compensations
 if export_traj
@@ -49,6 +50,7 @@ end
 
 XQ_full = [repmat(XQ,size(Ft.')),Ft.'];
 wp = XQ_full;
+wp_collect = wp;
 
 % Apply compensations
 if export_traj

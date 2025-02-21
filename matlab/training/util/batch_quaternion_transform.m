@@ -1,8 +1,13 @@
-function T_new = batch_quaternion_transform(T_old)
+function T_new = batch_quaternion_transform(T_old,q2)
 
     q1 = [1,0,0,0];
-    q2 = [T_old.qw_end_avg(1),T_old.qx_end_avg(1),T_old.qy_end_avg(1),T_old.qz_end_avg(1)];
-   
+
+    if nargin < 2
+        q2 = [T_old.qw_end_avg(1),T_old.qx_end_avg(1),T_old.qy_end_avg(1),T_old.qz_end_avg(1)];
+    else
+        disp(q2)
+    end
+       
     T_new = T_old;
 
     for i = 1:size(T_old,1)

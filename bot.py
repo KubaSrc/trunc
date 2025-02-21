@@ -171,7 +171,7 @@ class aux_bot():
             self.motor_data = np.loadtxt(self.drive_path + self.pos_path, skiprows = 1, delimiter=',', dtype = 'float32',
                                 usecols = tuple(range(self.output_size, self.output_size + self.input_size)))
         
-        print("[aux-net] Loaded pos data: ", self.pos_data.shape)
+        print("[aux-net] Loaded pos data: ", self.pos_data.shape)        
         print("[aux-net] Loaded motor data: ", self.motor_data.shape)
 
 
@@ -180,6 +180,8 @@ class aux_bot():
 
         self.data[:,self.end_slice_xyz] *= 10e2
         self.data_raw = np.copy(self.data)
+
+        print(self.data[0,self.end_slice])
 
         self.min_scale = np.amin(self.data,0)
         self.min_scale[self.end_slice_q] = np.array([0,0,0,0])
