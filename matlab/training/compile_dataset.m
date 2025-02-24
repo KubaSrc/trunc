@@ -12,7 +12,7 @@ m0 = 583;
 %                       mass A + brush, mass A + mass C + brush 
 mass = m0+[48,146,146+250,146+580,146+255+580]; 
 mass = (mass/1000)*9.81;
-z_home = [0.3209,0.3177,0.3164,0.3153,0.3144];
+y_home = [0.3209,0.3177,0.3164,0.3153,0.3144];
 
 
 mass_vis = 3; % Default is -1 for all 
@@ -40,7 +40,7 @@ end
 % Pull in recent data
 for trial = 1:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path,"Range",[1,4]);
-    T_i.z_end_avg = T_i.z_end_avg-T_i.z_end_avg(1) + z_home(trial);
+    T_i.z_end_avg = T_i.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
     disp(size(T_i))
     % Align quaternions with [1,0,0,0] home position
     for i = 1:(size(T_i,1))/100
@@ -58,7 +58,7 @@ T_new = array2table(T_new,"VariableNames",header);
 q_slice = T_new.qw_end_avg > 0.8;
 T_new = T_new(q_slice,:);
 
-writetable(T_new, 'data/feb4_training_data_rehomed.csv');
+writetable(T_new, 'data/feb4_training_data_rehomed_y.csv');
 
 if plot_data
     

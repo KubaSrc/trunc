@@ -5,10 +5,6 @@ map = brewermap(9,'Set1');
 
 %% Load in data
 
-% Masses associated with each data set
-%OLD m0 = 400;       
-%OLD mass = m0+[50,100,127,255,578,255+578,578+564];
-
 %The mass of the arm with nothing on it
 m0 = 583;
 
@@ -16,6 +12,8 @@ m0 = 583;
 %                       mass A + brush, mass A + mass C + brush 
 mass = m0+[48,146,146+250,146+580,146+255+580]; 
 mass = (mass/1000)*9.81;
+z_home = [0.3209,0.3177,0.3164,0.3153,0.3144];
+
 
 mass_vis = 3; % Default is -1 for all 
 
@@ -42,17 +40,13 @@ end
 % Pull in recent data
 for trial = 1:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path,"Range",[1,4]);
-
+    T_i.z_end_avg = T_i.y_end_avg-T_i.y_end_avg(1) + z_home(trial);
+    disp(size(T_i))
     % Align quaternions with [1,0,0,0] home position
-    for i = 1:(size(T_i,1)-1)/100
+    for i = 1:(size(T_i,1))/100
         T_i_snip = T_i((i-1)*100+1:i*100,:);
         T_i_snip_new = batch_quaternion_transform(T_i_snip);
         T_new = [T_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
-    end
-
-    if plot_data
-        s = scatter3(T_i.x_end_avg,T_i.y_end_avg,T_i.z_end_avg,'filled', 'MarkerFaceColor', colors(trial,:), 'MarkerEdgeColor','none','LineWidth',1);
-        s.SizeData=50;
     end
 
 end
@@ -60,11 +54,11 @@ end
 % Create table
 T_new = array2table(T_new,"VariableNames",header);
 
-% Correct for any flip mid trajectory
-q_slice = T_new.qw_end_avg < 0.8;
-T_new(q_slice,:) = batch_quaternion_transform(T_new(q_slice,:));
+% Remove any mid-flip data points
+q_slice = T_new.qw_end_avg > 0.8;
+T_new = T_new(q_slice,:);
 
-writetable(T_new, 'data/feb4_training_data_doublefixed_quat.csv');
+writetable(T_new, 'data/feb4_training_data_rehomed.csv');
 
 if plot_data
     
