@@ -40,7 +40,7 @@ end
 % Pull in recent data
 for trial = 1:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path,"Range",[1,4]);
-    T_i.z_end_avg = T_i.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
+    T_i.y_end_avg = T_i.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
     disp(size(T_i))
     % Align quaternions with [1,0,0,0] home position
     for i = 1:(size(T_i,1))/100
@@ -58,7 +58,7 @@ T_new = array2table(T_new,"VariableNames",header);
 q_slice = T_new.qw_end_avg > 0.8;
 T_new = T_new(q_slice,:);
 
-writetable(T_new, 'data/feb4_training_data_rehomed_y.csv');
+writetable(T_new, 'data/feb4_training_data_rehomed.csv');
 
 if plot_data
     
