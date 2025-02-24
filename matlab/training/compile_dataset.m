@@ -50,7 +50,7 @@ for trial = 1:length(mass)
         % Rehome
         s1 = [min(table2array(T_i_snip(1,8:3:15)),[],"all"),min(table2array(T_i_snip(1,9:3:15)),[],"all"),min(table2array(T_i_snip(1,10:3:16)),[],"all")];
         dy = sum(s0-s1);
-        T_i_snip.y_end_avg = T_i_snip.y_end_avg-T_i_snip.y_end_avg(1) + y_home(trial) + dy./1000;
+        T_i_snip.y_end_avg = T_i_snip.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
         % Align quaternions
         T_i_snip_new = batch_quaternion_transform(T_i_snip);
         T_new = [T_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
