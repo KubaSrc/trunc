@@ -13,6 +13,9 @@ m0 = 583;
 mass = m0+[48,146,146+250,146+580,146+255+580]; 
 mass = (mass/1000)*9.81;
 y_home = [0.3209,0.3177,0.3164,0.3153,0.3144];
+x_home = 4.233654/1000;
+z_home = 42.98552/1000;
+
 
 
 mass_vis = 3; % Default is -1 for all 
@@ -47,7 +50,11 @@ for trial = 1:length(mass)
     for i = 1:(size(T_i,1))/100
         T_i_snip = T_i((i-1)*100+1:i*100,:);
         y_homes(i,trial) = T_i_snip.y_end_avg(1);
+        % Rehome
+        T_i_snip.x_end_avg = T_i_snip.x_end_avg-T_i_snip.x_end_avg(1) + x_home;
         T_i_snip.y_end_avg = T_i_snip.y_end_avg-T_i_snip.y_end_avg(1) + y_home(trial);
+        T_i_snip.z_end_avg = T_i_snip.z_end_avg-T_i_snip.z_end_avg(1) + z_home;
+        % Align quaternions
         T_i_snip_new = batch_quaternion_transform(T_i_snip);
         y_homes_new(i,trial) = T_i_snip_new.y_end_avg(1);
         T_new = [T_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
@@ -62,7 +69,7 @@ T_new = array2table(T_new,"VariableNames",header);
 q_slice = T_new.qw_end_avg > 0.8;
 T_new = T_new(q_slice,:);
 
-writetable(T_new, 'data/feb4_training_data_rehomed.csv');
+writetable(T_new, 'data/feb4_training_data_rehomed_xyz.csv');
 
 if plot_data
     

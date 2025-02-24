@@ -12,7 +12,7 @@ demo = false;
 active_pause = false;
 active_motor = false;
 
-delta_x = -25;
+delta_x = 0;
 approach_inputs_path = sprintf("././inference/instron_approach_dx_%d_inputs.mat",delta_x); % Motor positions from model
 collect_inputs_path = sprintf("././inference/instron_collect_dx_%d_inputs.mat",delta_x); % Motor positions from model
 
