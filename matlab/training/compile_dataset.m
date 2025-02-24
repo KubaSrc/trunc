@@ -37,15 +37,19 @@ if plot_data
     figure(1); clf; hold on; grid on;
 end
 
+y_homes = zeros(20,5);
+y_home_new = zeros(20,5);
+
 % Pull in recent data
 for trial = 1:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path,"Range",[1,4]);
-    T_i.y_end_avg = T_i.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
-    disp(size(T_i))
     % Align quaternions with [1,0,0,0] home position
     for i = 1:(size(T_i,1))/100
         T_i_snip = T_i((i-1)*100+1:i*100,:);
+        y_homes(i,trial) = T_i_snip.y_end_avg(1);
+        T_i_snip.y_end_avg = T_i_snip.y_end_avg-T_i_snip.y_end_avg(1) + y_home(trial);
         T_i_snip_new = batch_quaternion_transform(T_i_snip);
+        y_homes_new(i,trial) = T_i_snip_new.y_end_avg(1);
         T_new = [T_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
     end
 
@@ -72,6 +76,23 @@ if plot_data
     title('Point Cloud Visualization');
     legend(legendLabels, 'Location', 'bestoutside');
 end
+
+%% 
+
+figure(1); clf; hold on
+
+plot(y_homes);
+xlabel("Trial");
+ylabel("Y home (m)");
+legend(string(mass))
+
+figure(2); clf; hold on
+
+plot(y_homes_new);
+xlabel("Trial");
+ylabel("Y home (m)");
+legend(string(mass))
+
 
 %% 
 % Extract positions from the table

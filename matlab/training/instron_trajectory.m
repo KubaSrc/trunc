@@ -11,7 +11,7 @@ export_traj = true;
 % DEFINE F_arm and F_tool
 F_arm = (583./1000).*9.81;
 F_tool = ((234+580)./1000).*9.81; % Counter rotating brush + Mass A
-
+    
 % Find position of plate
 nnc = connect_to_natnet();
 bodies = nnc.getFrame().RigidBodies;
