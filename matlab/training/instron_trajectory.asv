@@ -14,12 +14,12 @@ F_tool = ((234+580)./1000).*9.81; % Counter rotating brush + Mass A
 nnc = connect_to_natnet();
 bodies = nnc.getFrame().RigidBodies;
 
-y_offset = 0.1261; % m
+y_calibrate = 2/1000;
+y_offset = 0.1241; % m
 
 % CHECK THESE INDICIES WHEN DEFINING NEW RIGID BODIES
 arm = bodies(2);
 plate = bodies(1);
-
 
 %% Define scrubbing position 
 X = 1000.*[plate.x,plate.y+y_offset,plate.z];
@@ -27,9 +27,12 @@ Q = [0,0,0,1];
 XQ = [X,Q];
 
 
-Fn = 7:-0.25:0;
-Fg = F_arm + F_tool;
-Ft = Fg - Fn;
+% Fn = 0:0.25:7;
+% Fg = -F_arm - F_tool;
+% Ft = -Fg - Fn;
+Ft = [15.3428,12.84129,9.60399,7.15149,6.19011];
+
+
 %% Trajectory to move brush to position
 
 wp = [home_triad_pos;XQ];
@@ -55,6 +58,14 @@ wp_collect = wp;
 % Apply compensations
 if export_traj
     save('./inference/instron_collect_0.mat','wp')
+end
+
+%% Combined
+
+wp = [wp_approach;wp_collect];
+
+if export_traj
+    save('./inference/instron_combined_0.mat','wp')
 end
 
 %% Helpfer functions

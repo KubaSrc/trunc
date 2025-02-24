@@ -4,6 +4,8 @@ home_triad_pos = load('./state/home_triad_measured.mat').pos;
 addpath('./util/NatNet_SDK_4.1/NatNetSDK/Samples/Matlab');
 addpath('./util/')
 
+home_triad_pos = load('./state/home_triad_measured.mat').pos;
+
 export_traj = true;
 
 % DEFINE F_arm and F_tool
@@ -14,23 +16,25 @@ F_tool = ((234+580)./1000).*9.81; % Counter rotating brush + Mass A
 nnc = connect_to_natnet();
 bodies = nnc.getFrame().RigidBodies;
 
-y_offset = 0.1261; % m
+y_plate = 0.2361*1000;
+y_calibrate = 0;
+y_offset = 1000.*(0.1241-y_calibrate); % m
+delta_x = -25;
 
 % CHECK THESE INDICIES WHEN DEFINING NEW RIGID BODIES
 arm = bodies(2);
 plate = bodies(1);
 
-
 %% Define scrubbing position 
-X = 1000.*[plate.x,plate.y+y_offset,plate.z];
+X = [home_triad_pos(1)+delta_x,y_plate+y_offset,home_triad_pos(3)];
 Q = [0,0,0,1];
 XQ = [X,Q];
 
 
-% Fn = 0:0.25:7;
-% Fg = -F_arm - F_tool;
-% Ft = -Fg - Fn;
-Ft = [6.19011,7.15149,9.60399,12.84129,15.3428];
+Fn = 0:0.25:10;
+Fg = -F_arm - F_tool;
+Ft = -Fg - Fn;
+% Ft = [15.3428,12.84129,9.60399,7.15149,6.19011];
 
 
 %% Trajectory to move brush to position
@@ -46,7 +50,8 @@ wp_approach = wp;
 
 % Apply compensations
 if export_traj
-    save('./inference/instron_approach_0.mat','wp')
+    save_path = sprintf('./inference/instron_approach_dx_%d.mat',delta_x);
+    save(save_path,'wp')
 end
 
 %% This is the data collection trajectory
@@ -57,15 +62,8 @@ wp_collect = wp;
 
 % Apply compensations
 if export_traj
-    save('./inference/instron_collect_0.mat','wp')
-end
-
-%% Combined
-
-wp = [wp_approach;wp_collect];
-
-if export_traj
-    save('./inference/instron_combined_0.mat','wp')
+    save_path = sprintf('./inference/instron_collect_dx_%d.mat',delta_x);
+    save(save_path,'wp')
 end
 
 %% Helpfer functions
