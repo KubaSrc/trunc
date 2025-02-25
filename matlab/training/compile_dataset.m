@@ -13,6 +13,9 @@ m0 = 583;
 mass = m0+[48,146,146+250,146+580,146+255+580]; 
 mass = (mass/1000)*9.81;
 y_home = [0.3209,0.3177,0.3164,0.3153,0.3144];
+z_home = [0.0410,0.0434,0.0425,0.0416,0.0417];
+x_home = [-0.0015,0.0015,0.0018,0.0012,0.0023];
+
 
 mass_vis = 3; % Default is -1 for all 
 
@@ -37,27 +40,38 @@ if plot_data
 end
 
 y_homes = zeros(20,5);
+x_homes = zeros(20,5);
+z_homes = zeros(20,5);
 y_home_new = zeros(20,5);
+ls = zeros(20,5,9);
+
+figure(); hold on;
 
 % Pull in recent data
 for trial = 1:length(mass) 
     T_i = readtable(root_path+data_path(trial)+file_path,"Range",[1,4]);
     s0 = [min(table2array(T_i(1,8:3:15)),[],"all"),table2array(min(T_i(1,9:3:15),[],"all")),table2array(min(T_i(1,10:3:16),[],"all"))];
     % Align quaternions with [1,0,0,0] home position
+    T_i_new = [];
     for i = 1:(size(T_i,1))/100
         T_i_snip = T_i((i-1)*100+1:i*100,:);
         y_homes(i,trial) = T_i_snip.y_end_avg(1);
+        x_homes(i,trial) = T_i_snip.x_end_avg(1);
+        z_homes(i,trial) = T_i_snip.z_end_avg(1);
+        ls(i,trial,:) = table2array(T_i_snip(1,8:end));
         % Rehome
-        s1 = [min(table2array(T_i_snip(1,8:3:15)),[],"all"),min(table2array(T_i_snip(1,9:3:15)),[],"all"),min(table2array(T_i_snip(1,10:3:16)),[],"all")];
-        dy = sum(s0-s1);
         T_i_snip.y_end_avg = T_i_snip.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
         % Align quaternions
         T_i_snip_new = batch_quaternion_transform(T_i_snip);
-        T_new = [T_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
+        T_i_new = [T_i_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
         y_homes_new(i,trial) = T_i_snip_new.y_end_avg(1);
     end
+    T_new = [T_new;T_i_new];
+    scatter(T_i_new(:,1),T_i_new(:,2),'filled')
 
 end
+
+legend(string(mass))
 
 % Create table
 T_new = array2table(T_new,"VariableNames",header);
@@ -66,7 +80,7 @@ T_new = array2table(T_new,"VariableNames",header);
 q_slice = T_new.qw_end_avg > 0.8;
 T_new = T_new(q_slice,:);
 
-writetable(T_new, 'data/feb4_training_data_rehomed_xyz.csv');
+writetable(T_new, 'data/feb4_training_data_rehomed.csv');
 
 if plot_data
     
@@ -90,12 +104,39 @@ xlabel("Trial");
 ylabel("Y home (m)");
 legend(string(mass))
 
-figure(2); clf; hold on
+figure(2); clf; hold on;
+plot(y_homes_new)
 
-plot(y_homes_new);
-xlabel("Trial");
-ylabel("Y home (m)");
-legend(string(mass))
+% figure(2); clf; hold on
+% 
+% plot(x_homes);
+% xlabel("Trial");
+% ylabel("X home (m)");
+% legend(string(mass))
+% 
+% figure(3); clf; hold on
+% 
+% plot(z_homes);
+% xlabel("Trial");
+% ylabel("Z home (m)");
+% legend(string(mass))
+% 
+% figure(4); clf; hold on;
+% plot(reshape(ls(:,1,:),[20,9]))
+% 
+% 
+% figure(); clf; hold on
+% 
+% plot(y_homes_new);
+% xlabel("Trial");
+% ylabel("Y home new (m)");
+% legend(string(mass))
+% % figure(2); clf; hold on
+% % 
+% % plot(y_homes_new);
+% % xlabel("Trial");
+% % ylabel("Y home (m)");
+% % legend(string(mass))
 
 
 %% 
