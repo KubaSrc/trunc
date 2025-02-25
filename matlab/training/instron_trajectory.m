@@ -17,9 +17,9 @@ nnc = connect_to_natnet();
 bodies = nnc.getFrame().RigidBodies;
 
 y_plate = 0.2361*1000;
-y_calibrate = 0;
+y_calibrate = -5./1000;
 y_offset = 1000.*(0.1241-y_calibrate); % m
-delta_x = -25;
+delta_x = 0;
 
 % CHECK THESE INDICIES WHEN DEFINING NEW RIGID BODIES
 arm = bodies(2);
@@ -31,7 +31,7 @@ Q = [0,0,0,1];
 XQ = [X,Q];
 
 
-Fn = 0:0.25:10;
+Fn = 0:0.25:5;
 Fg = -F_arm - F_tool;
 Ft = -Fg - Fn;
 % Ft = [15.3428,12.84129,9.60399,7.15149,6.19011];
