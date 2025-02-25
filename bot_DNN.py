@@ -38,7 +38,7 @@ class aux_bot_DNN(aux_bot):
             print("[aux_bot_DNN] Forward model succesfully loaded")
 
          # Constant for inverse model
-        self.EPOCHS = 75 # originally 50
+        self.EPOCHS = 50 # originally 50
         self.LEARNING_RATE = 0.001 #originally 0.001
         self.MOMENTUM = 0.9
         self.DROPOUT = 0
@@ -60,7 +60,7 @@ class aux_bot_DNN(aux_bot):
         if not train_inverse:
             if weighted:
                 self.ik_net = self.inverse_net(hidden=1600,inputs=self.output_size,outputs=self.input_size)
-                model_path = drive_path + 'models/DNN_finalized_models/feb4_rehomed_xyz_8.632mm'
+                model_path = drive_path + 'models/DNN_finalized_models/feb4_8.519mm'
                 self.ik_net.load_state_dict(torch.load(model_path, map_location=self.device))
                 self.ik_net.eval()
                 self.ik_net.to(self.device)
