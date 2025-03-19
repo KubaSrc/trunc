@@ -1,0 +1,63 @@
+close all; clc; clear all;
+
+home_triad_pos = load('./state/home_triad_measured.mat').pos;
+addpath('./util/NatNet_SDK_4.1/NatNetSDK/Samples/Matlab');
+addpath('./util/')
+
+home_triad_pos = load('./state/home_triad_measured.mat').pos;
+
+export_traj = true;
+
+% DEFINE F_arm and F_tool
+F_arm = (583./1000).*9.81;
+F_tool = ((234+580+250)./1000).*9.81; % Counter rotating brush + Mass A
+    
+% Find position of plate
+nnc = connect_to_natnet();
+bodies = nnc.getFrame().RigidBodies;
+
+y_plate = 0.2361*1000;
+y_calibrate = -1./1000;
+y_offset = 1000.*(0.1241-y_calibrate); % m
+delta_x = 25;
+
+% CHECK THESE INDICIES WHEN DEFINING NEW RIGID BODIES
+arm = bodies(2);
+plate = bodies(1);
+
+%% Spiral for grill
+
+% Parameters
+max_diameter = 150-30;   % Maximum diameter of the spiral
+num_turns = 3;       % Number of complete turns
+
+% Derived quantities
+max_radius = max_diameter / 2;         % Maximum radius from the center
+theta_max = 2 * pi * num_turns;          % Maximum angle in radians
+
+% Create a vector of theta values
+theta = linspace(0, theta_max, 1000);    % 1000 points for smoothness
+
+% Calculate the coefficient 'b' so that r(theta_max) equals max_radius
+b = max_radius / theta_max;
+
+% Compute the radius for each theta
+r = b * theta;
+
+% Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)
+x = r .* cos(theta);
+y = r .* sin(theta);
+
+% Plot the spiral
+figure;
+plot(x, y, 'LineWidth', 2);
+axis equal;          % Ensure the x and y axes are scaled equally
+xlabel('X');
+ylabel('Y');
+title('Archimedean Spiral');
+grid on;
+
+
+%% Cresent for toilet seat
+
+%% Back and forth for plate

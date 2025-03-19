@@ -16,57 +16,68 @@ F_tool = ((234+580+250)./1000).*9.81; % Counter rotating brush + Mass A
 nnc = connect_to_natnet();
 bodies = nnc.getFrame().RigidBodies;
 
-y_plate = 0.2264*1000;
+y_plate = 0.2361*1000;
 y_calibrate = -1./1000;
 y_offset = 1000.*(0.1241-y_calibrate); % m
-delta_x = 0;
+delta_x = 25;
 
 % CHECK THESE INDICIES WHEN DEFINING NEW RIGID BODIES
 arm = bodies(2);
 plate = bodies(1);
 
-%% Define scrubbing position 
-X = [home_triad_pos(1)+delta_x,y_plate+y_offset,home_triad_pos(3)];
+%% CONSTANTS
+
+% DEFINE F_arm and F_tool
+F_arm = (583./1000).*9.81;
+F_tool = ((234+580+250)./1000).*9.81; % Counter rotating brush + Mass A
+Fg = -F_arm - F_tool;
+
+%% Spiral for grill
+
+X = [home_triad_pos(1),y_plate+y_offset,home_triad_pos(3)+delta_x];
 Q = [0,0,0,1];
 XQ = [X,Q];
 
+Fn = 2;
+Ft_move = -Fg;
+Ft_scrub = -Fg - Fn;
 
-Fn = 2.5:0.25:5;
-Fg = -F_arm - F_tool;
-Ft = -Fg - Fn;
-% Ft = [15.3428,12.84129,9.60399,7.15149,6.19011];
+% Parameters
+max_diameter = 150-30;   % Maximum diameter of the spiral
+num_turns = 3;       % Number of complete turns
+
+% Derived quantities
+max_radius = max_diameter / 2;         % Maximum radius from the center
+theta_max = 2 * pi * num_turns;          % Maximum angle in radians
+
+% Create a vector of theta values
+theta = linspace(0, theta_max, 1000);    % 1000 points for smoothness
+
+% Calculate the coefficient 'b' so that r(theta_max) equals max_radius
+b = max_radius / theta_max;
+
+% Compute the radius for each theta
+r = b * theta;
+
+% Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)
+x = r .* cos(theta);
+y = r .* sin(theta);
+
+% Plot the spiral
+figure;
+plot(x, y, 'LineWidth', 2);
+axis equal;          % Ensure the x and y axes are scaled equally
+xlabel('X');
+ylabel('Y');
+title('Archimedean Spiral');
+grid on;
 
 
-%% Trajectory to move brush to position
+%% Cresent for toilet seat
 
-wp = [home_triad_pos;XQ];
-wp =  interp_waypoints(wp,100,"linear");
-wp(:,4:end) = repmat([0,0,0,1],[size(wp,1),1]);
+%% Back and forth for plate
 
-Ft_start = repmat(Ft(1),[size(wp,1),1]);
-
-wp = [wp,Ft_start];
-wp_approach = wp;
-
-% Apply compensations
-if export_traj
-    save_path = sprintf('./inference/instron/instron_approach_dx_%d.mat',delta_x);
-    save(save_path,'wp')
-end
-
-%% This is the data collection trajectory
-
-XQ_full = [repmat(XQ,size(Ft.')),Ft.'];
-wp = XQ_full;
-wp_collect = wp;
-
-% Apply compensations
-if export_traj
-    save_path = sprintf('./inference/instron/instron_collect_dx_%d.mat',delta_x);
-    save(save_path,'wp')
-end
-
-%% Helpfer functions
+%% Helper functions
 
 function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
     % Extract positions and quaternions
@@ -119,8 +130,3 @@ function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
     % Combine interpolated positions and quaternions
     interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions(:,[2,3,4,1])];
 end
-
-
-
-
-

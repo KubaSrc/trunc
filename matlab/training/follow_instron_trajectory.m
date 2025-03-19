@@ -12,9 +12,9 @@ demo = false;
 active_pause = false;
 active_motor = false;
 
-delta_x = 0;
-approach_inputs_path = sprintf("././inference/instron_approach_dx_%d_inputs.mat",delta_x); % Motor positions from model
-collect_inputs_path = sprintf("././inference/instron_collect_dx_%d_inputs.mat",delta_x); % Motor positions from model
+delta_x = 50;
+approach_inputs_path = sprintf("././inference/instron/instron_approach_dx_%d_inputs.mat",delta_x); % Motor positions from model
+collect_inputs_path = sprintf("././inference/instron/instron_collect_dx_%d_inputs.mat",delta_x); % Motor positions from model
 
 % Loading trajectory info for approach
 l_delta_approach = load(approach_inputs_path).output;
@@ -31,7 +31,7 @@ num_points_collect=size(l_delta_collect,1);
 arm = robotArm();
 arm.min_motor = -250;
 arm.max_motor = 150;
-motor = armMotor();
+% motor = armMotor();
 
 %% Loop and collect data
 
@@ -56,9 +56,3 @@ for p = 1:num_points_collect
     pause(0.25)
 
 end
-
-% 
-% X = input("Press enter to finish test");
-% 
-% arm.reset_arm();
-

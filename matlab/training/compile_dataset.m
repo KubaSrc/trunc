@@ -17,6 +17,8 @@ z_home = [0.0410,0.0434,0.0425,0.0416,0.0417];
 x_home = [-0.0015,0.0015,0.0018,0.0012,0.0023];
 
 
+
+
 mass_vis = 3; % Default is -1 for all 
 
 root_path = "./data/";
@@ -60,9 +62,10 @@ for trial = 1:length(mass)
         z_homes(i,trial) = T_i_snip.z_end_avg(1);
         ls(i,trial,:) = table2array(T_i_snip(1,8:end));
         % Rehome
-        % T_i_snip.y_end_avg = T_i_snip.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
+        T_i_snip.y_end_avg = T_i_snip.y_end_avg-T_i.y_end_avg(1) + y_home(trial);
         % Align quaternions
-        T_i_snip_new = batch_quaternion_transform(T_i_snip);
+        % T_i_snip_new = batch_quaternion_transform(T_i_snip);
+        T_i_snip_new = T_i_snip;
         T_i_new = [T_i_new;[table2array(T_i_snip_new(:,1:7)),repmat(mass(trial),[size(T_i_snip_new,1),1]),table2array(T_i_snip_new(:,8:16))]];
         y_homes_new(i,trial) = T_i_snip_new.y_end_avg(1);
     end
@@ -77,10 +80,10 @@ legend(string(mass))
 T_new = array2table(T_new,"VariableNames",header);
 
 % Remove any mid-flip data points
-q_slice = T_new.qw_end_avg > 0.8;
+q_slice = T_new.qx_end_avg > 0.8;
 T_new = T_new(q_slice,:);
 
-writetable(T_new, 'data/feb4_training_data_trimmed.csv');
+writetable(T_new, 'data/feb4_training_data_rehomed_full_trim.csv');
 
 if plot_data
     

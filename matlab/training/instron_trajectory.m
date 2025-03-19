@@ -10,28 +10,31 @@ export_traj = true;
 
 % DEFINE F_arm and F_tool
 F_arm = (583./1000).*9.81;
-F_tool = ((234+580)./1000).*9.81; % Counter rotating brush + Mass A
+% F_tool = ((234+580+250)./1000).*9.81; % Counter rotating brush + Mass A
+F_tool = ((234)./1000).*9.81; % Counter rotating brush + Mass A
     
 % Find position of plate
 nnc = connect_to_natnet();
 bodies = nnc.getFrame().RigidBodies;
 
 y_plate = 0.2361*1000;
-y_calibrate = -5./1000;
+y_calibrate = 3./1000;
 y_offset = 1000.*(0.1241-y_calibrate); % m
-delta_x = 0;
+delta_x = 50;
 
 % CHECK THESE INDICIES WHEN DEFINING NEW RIGID BODIES
-arm = bodies(2);
-plate = bodies(1);
+arm = bodies(1);
+plate = bodies(2);
+
+y_plate = plate.y.*1000-(22.5); 
 
 %% Define scrubbing position 
-X = [home_triad_pos(1)+delta_x,y_plate+y_offset,home_triad_pos(3)];
+X = [home_triad_pos(1),y_plate+y_offset,home_triad_pos(3)+delta_x];
 Q = [0,0,0,1];
 XQ = [X,Q];
 
 
-Fn = 0:0.25:5;
+Fn = 1:0.2:2;
 Fg = -F_arm - F_tool;
 Ft = -Fg - Fn;
 % Ft = [15.3428,12.84129,9.60399,7.15149,6.19011];
@@ -50,7 +53,7 @@ wp_approach = wp;
 
 % Apply compensations
 if export_traj
-    save_path = sprintf('./inference/instron_approach_dx_%d.mat',delta_x);
+    save_path = sprintf('./inference/instron/instron_approach_dx_%d.mat',delta_x);
     save(save_path,'wp')
 end
 
@@ -62,7 +65,7 @@ wp_collect = wp;
 
 % Apply compensations
 if export_traj
-    save_path = sprintf('./inference/instron_collect_dx_%d.mat',delta_x);
+    save_path = sprintf('./inference/instron/instron_collect_dx_%d.mat',delta_x);
     save(save_path,'wp')
 end
 
