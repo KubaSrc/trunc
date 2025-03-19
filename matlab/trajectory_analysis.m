@@ -137,6 +137,12 @@ for i = 1:length(list_exp_DNN)
     xlim([0,500]);
     ylim([-75,100]);
 
+    % Export the figure as a vector graphic
+    if export_fig
+        exportgraphics(fig_xz, ['../figures/trajectory/x-y-', num2str(i), '.emf'], 'ContentType', 'vector');
+    end
+
+
 
 
     if i == 1 
@@ -162,7 +168,7 @@ for i = 1:length(list_exp_DNN)
 
     % Export the figure as a vector graphic
     if export_fig
-        exportgraphics(fig_xz, ['../figures/trajectory/circle-y-z-', num2str(i), '.emf'], 'ContentType', 'vector');
+        exportgraphics(fig_xz, ['../figures/trajectory/pos-', num2str(i), '.emf'], 'ContentType', 'vector');
     end
 
 
