@@ -8,22 +8,13 @@ home_triad_pos = load('./state/home_triad_measured.mat').pos;
 
 export_traj = true;
 
-% DEFINE F_arm and F_tool
-F_arm = (583./1000).*9.81;
-F_tool = ((234+580+250)./1000).*9.81; % Counter rotating brush + Mass A
-    
 % Find position of plate
 nnc = connect_to_natnet();
-bodies = nnc.getFrame().RigidBodies;
 
-y_plate = 0.2361*1000;
+% Offset between scrubber and motcap
 y_calibrate = -1./1000;
-y_offset = 1000.*(0.1241-y_calibrate); % m
-delta_x = 25;
+y_offset = 1000.*(0.1241-y_calibrate); % mm
 
-% CHECK THESE INDICIES WHEN DEFINING NEW RIGID BODIES
-arm = bodies(2);
-plate = bodies(1);
 
 %% CONSTANTS
 
@@ -34,11 +25,7 @@ Fg = -F_arm - F_tool;
 
 %% Spiral for grill
 
-X = [home_triad_pos(1),y_plate+y_offset,home_triad_pos(3)+delta_x];
-Q = [0,0,0,1];
-XQ = [X,Q];
-
-Fn = 2;
+Fn = 3;
 Ft_move = -Fg;
 Ft_scrub = -Fg - Fn;
 
@@ -51,7 +38,7 @@ max_radius = max_diameter / 2;         % Maximum radius from the center
 theta_max = 2 * pi * num_turns;          % Maximum angle in radians
 
 % Create a vector of theta values
-theta = linspace(0, theta_max, 1000);    % 1000 points for smoothness
+theta = linspace(0, theta_max, 100);    % 1000 points for smoothness
 
 % Calculate the coefficient 'b' so that r(theta_max) equals max_radius
 b = max_radius / theta_max;
@@ -62,20 +49,110 @@ r = b * theta;
 % Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)
 x = r .* cos(theta);
 y = r .* sin(theta);
+z = zeros(size(x));
 
-% Plot the spiral
-figure;
-plot(x, y, 'LineWidth', 2);
-axis equal;          % Ensure the x and y axes are scaled equally
-xlabel('X');
-ylabel('Y');
-title('Archimedean Spiral');
-grid on;
+% Offsets for grill + calibration factor
+y_grill = 0.2361*1000;
+X = [x.'+home_triad_pos(1),z.'+y_offset+y_grill,y.'+home_triad_pos(3)];
+Q = repmat([0,0,0,1],[size(X,1),1]);
+XQ = [X,Q];
 
+% Export the waypoints
+wp = [home_triad_pos;XQ];
+wp(:,4:end) = repmat([0,0,0,1],[size(wp,1),1]);
 
-%% Cresent for toilet seat
+Ft = repmat(Ft_scrub,[size(wp,1),1]);
+Ft(1:2) = Ft_move;
+
+wp = [wp,Ft];
+
+pause_mat = zeros(size(wp,1));
+pause_mat(2) = 1;
+
+motor_mat = zeros(size(wp,1));
+motor_mat(2:end) = 1;
+
+% Apply compensations
+if export_traj
+    save_path = sprintf('./inference/scrubbing/grill_wp.mat');
+    save(save_path,'wp')
+end
+
+% Apply compensations
+if export_traj
+    save_path = sprintf('./inference/scrubbing/grill_pause.mat');
+    save(save_path,'wp')
+end
+
+% Turn motors
+if export_traj
+    save_path = sprintf('./inference/scrubbing/grill_motor.mat');
+    save(save_path,'wp')
+end
+
 
 %% Back and forth for plate
+
+% Define circle parameters
+diameter = 5.63779528 * 25.4; % Convert inches to mm
+radius = diameter / 2;
+spacing = 30; % mm spacing between rectilinear lines
+% Generate rectilinear path
+x_range = -radius:spacing:radius;
+y_range = sqrt(radius^2 - x_range.^2); % Compute y values for circle boundary
+% Create rectilinear path
+x_points = [];
+y_points = [];
+for i = 1:length(x_range)
+    if mod(i,2) == 1 % Alternate direction for rectilinear scan
+        y_path = [-y_range(i), y_range(i)];
+    else
+        y_path = [y_range(i), -y_range(i)];
+    end
+    x_points = [x_points, repmat(x_range(i), 1, 2)];
+    y_points = [y_points, y_path];
+end
+% Plot the rectilinear path
+figure;
+plot(x_points, y_points, 'b-', 'LineWidth', 2);
+hold on;
+theta = linspace(0, 2*pi, 100);
+plot(radius*cos(theta), radius*sin(theta), 'r--', 'LineWidth', 1); % Circle boundary
+axis equal;
+grid on;
+xlabel('X (mm)');
+ylabel('Y (mm)');
+hold off;
+%% Toilet
+
+% Toilet seat dimensions (inches) converted to meters
+width = 6.5 * 0.0254; % Convert inches to meters
+height = 8 * 0.0254;  % Convert inches to meters
+ 
+% Define number of points and spacing
+numPoints = 100;  % Increase for smoother curve
+theta_start = -pi/2; % Start at bottom center
+theta_end = pi/2;   % End at top center
+ 
+% Generate the elliptical arc path
+theta = linspace(theta_start, theta_end, numPoints);
+x = (width / 2) * cos(theta);
+y = (height / 2) * sin(theta);
+ 
+% Plot the path
+figure;
+plot(x, y, "b-", "LineWidth", 2);
+hold on;
+scatter(x(1), y(1), 100, "r", "filled"); % Start point
+scatter(x(end), y(end), 100, "g", "filled"); % End point
+ 
+% Formatting
+axis equal;
+xlabel("X (m)");
+ylabel("Y (m)");
+title("Curved Path Following the Center of the Toilet Seat");
+grid on;
+legend("Toilet Seat Path", "Start", "End");
 
 %% Helper functions
 

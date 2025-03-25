@@ -23,8 +23,8 @@ if ~ programed
     motor_path = ['./inference/',trajectory,'_motor.mat'];
     save_points_path = ['./inference/',trajectory,'_p_'];
 else
-    trajectory_path = "./inference/655g_circle_trajectory.mat"; % Desired trajectory (X,Q)
-    inputs_path = "./inference/feb4_655g_inputs.mat"; % Motor positions from model
+    trajectory_path = "./inference/circle_trajectory.mat"; % Desired trajectory (X,Q)
+    inputs_path = "./inference/DNN_circle_trajectory_inputs.mat"; % Motor positions from model
 end
 
 trajectory_wp = load(trajectory_path).wp;

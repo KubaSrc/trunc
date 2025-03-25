@@ -6,7 +6,7 @@ motor = armMotor();
 
 arm = robotArm(3);
     
-% arm.reset_arm()
+arm.reset_arm()
 
 
 %% Record home position

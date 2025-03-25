@@ -29,6 +29,7 @@ plate = bodies(2);
 y_plate = plate.y.*1000-(22.5); 
 
 %% Define scrubbing position 
+
 X = [home_triad_pos(1),y_plate+y_offset,home_triad_pos(3)+delta_x];
 Q = [0,0,0,1];
 XQ = [X,Q];
@@ -43,7 +44,7 @@ Ft = -Fg - Fn;
 %% Trajectory to move brush to position
 
 wp = [home_triad_pos;XQ];
-wp =  interp_waypoints(wp,100,"linear");
+wp = interp_waypoints(wp,100,"linear");
 wp(:,4:end) = repmat([0,0,0,1],[size(wp,1),1]);
 
 Ft_start = repmat(Ft(1),[size(wp,1),1]);
@@ -57,6 +58,8 @@ if export_traj
     save(save_path,'wp')
 end
 
+pause_mat = zeros([size(wp,1),1]);
+
 %% This is the data collection trajectory
 
 XQ_full = [repmat(XQ,size(Ft.')),Ft.'];
@@ -69,7 +72,7 @@ if export_traj
     save(save_path,'wp')
 end
 
-%% Helpfer functions
+%% Helper functions
 
 function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
     % Extract positions and quaternions
