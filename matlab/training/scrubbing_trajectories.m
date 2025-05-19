@@ -11,148 +11,287 @@ export_traj = true;
 % Find position of plate
 nnc = connect_to_natnet();
 
-% Offset between scrubber and motcap
-y_calibrate = -1./1000;
-y_offset = 1000.*(0.1241-y_calibrate); % mm
 
+% CONSTANTS
 
-%% CONSTANTS
+m_arm = 583;
+m_brush = 234;
+m_c = 250;
+m_a = 580;
 
 % DEFINE F_arm and F_tool
-F_arm = (583./1000).*9.81;
-F_tool = ((234+580+250)./1000).*9.81; % Counter rotating brush + Mass A
+F_arm = (m_arm./1000).*9.81;
+F_tool = ((m_brush + m_a)./1000).*9.81; % Counter rotating brush + Mass A
 Fg = -F_arm - F_tool;
 
 %% Spiral for grill
+
+% Offset between scrubber and motcap
+y_calibrate = 1./1000;
+y_offset    = 1000.*(0.1241 - y_calibrate); % mm
+
+Fn         = 3;
+Ft_move    = -Fg;
+Ft_scrub   = -Fg - Fn;
+
+y_grill = 277-11;
+z_plane   = y_offset + y_grill;
+
+% Parameters
+max_diameter = 150 - 60;       % usable grill diameter (mm)
+num_turns    = 2;              % number of complete revolutions
+nPoints      = 200;            % how many samples along the spiral
+
+% Radii
+r1 = 20;                       % starting radius (mm), e.g. 10
+r2 = (max_diameter/2);         % ending radius (mm), e.g. half your diameter
+
+
+% Precompute
+theta_max = 2*pi * num_turns;
+theta     = linspace(0, theta_max, nPoints).';  % column vector
+
+% Archimedean spiral: r grows linearly from r1→r2
+r = r2 - (r2 - r1) * (theta / theta_max);
+
+% Convert polar→Cartesian
+x = r .* cos(theta);
+y = r .* sin(theta);
+z = zeros(size(x));
+
+% Offset into world frame
+
+X = [ x + home_triad_pos(1), ...
+      z + z_plane, ...
+      y + home_triad_pos(3) ];
+Q = repmat([0,0,0,1], size(X,1), 1);
+XQ = [X, Q];
+
+% now your waypoint stack needs only one XQ, not two
+retract  = home_triad_pos;   retract(2) = z_plane + 10;
+end_pos  = home_triad_pos;   end_pos(2) = z_plane;
+
+
+% Build your waypoint array
+wp = [ home_triad_pos; 
+        retract;
+       XQ;
+       retract];               % then spiral path
+
+% force vectors
+Ft = repmat(Ft_scrub, size(wp,1), 1);
+Ft(1:2) = Ft_move;         % only the first two points use move-force
+
+top_idx = find(wp(:,2) >= retract(2),1);
+
+pause_mat = zeros(size(wp,1),1);
+pause_mat(top_idx) = 1;
+
+motor_mat = zeros(size(wp,1),1);
+motor_mat(top_idx:end) = 1;
+
+% Attach force column
+wp = [wp, Ft];
+
+% (optional) save to .mat if export_traj flag is set
+if export_traj
+    save('./inference/scrubbing/grill_wp.mat',    'wp');
+    save('./inference/scrubbing/grill_pause.mat', 'pause_mat');
+    save('./inference/scrubbing/grill_motor.mat', 'motor_mat');
+end
+
+% visualize
+figure(1); clf; hold on;
+plot3(wp(:,1), wp(:,2), wp(:,3), '-o', 'MarkerSize', 2);
+axis equal;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title(sprintf('Archimedean spiral, r\\_1=%.1fmm to r\\_2=%.1fmm', r1, r2));
+
+
+%% Circle for the plate
+
+% Offset between scrubber and motcap
+y_calibrate = 13./1000;
+y_offset = 1000.*(0.1241-y_calibrate); % mm
 
 Fn = 3;
 Ft_move = -Fg;
 Ft_scrub = -Fg - Fn;
 
-% Parameters
-max_diameter = 150-30;   % Maximum diameter of the spiral
-num_turns = 3;       % Number of complete turns
+y_plate = 256;
 
-% Derived quantities
-max_radius = max_diameter / 2;         % Maximum radius from the center
-theta_max = 2 * pi * num_turns;          % Maximum angle in radians
+nPerLoop = 20;        % points around each circle
+loops     = 2;        % number of loops
+r         = 70;       % radius
+z_plane   = y_offset + y_plate;
 
-% Create a vector of theta values
-theta = linspace(0, theta_max, 100);    % 1000 points for smoothness
+% make 2 loops worth of angles, then drop the last point so there’s no duplicate
+theta = linspace(0, 2*pi*loops, nPerLoop*loops + 1).';
+theta(end) = [];
 
-% Calculate the coefficient 'b' so that r(theta_max) equals max_radius
-b = max_radius / theta_max;
-
-% Compute the radius for each theta
-r = b * theta;
-
-% Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)
+% circle coordinates
 x = r .* cos(theta);
 y = r .* sin(theta);
-z = zeros(size(x));
+z = zeros(size(theta));
 
-% Offsets for grill + calibration factor
-y_grill = 0.2361*1000;
-X = [x.'+home_triad_pos(1),z.'+y_offset+y_grill,y.'+home_triad_pos(3)];
-Q = repmat([0,0,0,1],[size(X,1),1]);
-XQ = [X,Q];
+% build your XYZ+Q
+X = [ x + home_triad_pos(1), ...
+      z + z_plane, ...
+      y + home_triad_pos(3) ];
+Q = repmat([0 0 0 1], size(X,1), 1);
+XQ = [X, Q];
 
-% Export the waypoints
-wp = [home_triad_pos;XQ];
-wp(:,4:end) = repmat([0,0,0,1],[size(wp,1),1]);
+% now your waypoint stack needs only one XQ, not two
+retract  = home_triad_pos;   retract(2) = z_plane + 30;
+end_pos  = home_triad_pos;   end_pos(2) = z_plane;
+
+wp = [ home_triad_pos
+       retract
+       XQ
+       end_pos ];
+
+% ensure all quaternions are [0 0 0 1]
+wp(:,4:7) = repmat([0 0 0 1], size(wp,1), 1);
+
+% interpolate (if you still want 120 points TOTAL, or bump to 240 
+% to keep the same per-loop resolution)
+wp = interp_waypoints(wp, 240, "cubic");
+wp = [wp; retract];
+
 
 Ft = repmat(Ft_scrub,[size(wp,1),1]);
-Ft(1:2) = Ft_move;
+
+top_idx = find(wp(:,2) >= retract(2),1);
+mid_idx = find(sum((wp(:,1:3)-end_pos(1:3)).^2,2)<1e-9,1);
+
+Ft(1:top_idx) = Ft_move;
+
+pause_mat = zeros([size(wp,1),1]);
+pause_mat(top_idx) = 1;
+pause_mat(mid_idx) = 10;
+
+motor_mat = zeros([size(wp,1),1]);
+motor_mat(top_idx:end) = 1;
 
 wp = [wp,Ft];
 
-pause_mat = zeros(size(wp,1));
-pause_mat(2) = 1;
-
-motor_mat = zeros(size(wp,1));
-motor_mat(2:end) = 1;
-
 % Apply compensations
 if export_traj
-    save_path = sprintf('./inference/scrubbing/grill_wp.mat');
+    save_path = sprintf('./inference/scrubbing/plate_circle_wp.mat');
     save(save_path,'wp')
 end
 
 % Apply compensations
 if export_traj
-    save_path = sprintf('./inference/scrubbing/grill_pause.mat');
-    save(save_path,'wp')
+    save_path = sprintf('./inference/scrubbing/plate_circle_pause.mat');
+    save(save_path,'pause_mat')
 end
 
 % Turn motors
 if export_traj
-    save_path = sprintf('./inference/scrubbing/grill_motor.mat');
-    save(save_path,'wp')
+    save_path = sprintf('./inference/scrubbing/plate_circle_motor.mat');
+    save(save_path,'motor_mat')
 end
 
+figure(2); clf; hold on;
 
-%% Back and forth for plate
+plot3(wp(:,1),wp(:,2),wp(:,3))
 
-% Define circle parameters
-diameter = 5.63779528 * 25.4; % Convert inches to mm
-radius = diameter / 2;
-spacing = 30; % mm spacing between rectilinear lines
-% Generate rectilinear path
-x_range = -radius:spacing:radius;
-y_range = sqrt(radius^2 - x_range.^2); % Compute y values for circle boundary
-% Create rectilinear path
-x_points = [];
-y_points = [];
-for i = 1:length(x_range)
-    if mod(i,2) == 1 % Alternate direction for rectilinear scan
-        y_path = [-y_range(i), y_range(i)];
-    else
-        y_path = [y_range(i), -y_range(i)];
-    end
-    x_points = [x_points, repmat(x_range(i), 1, 2)];
-    y_points = [y_points, y_path];
-end
-% Plot the rectilinear path
-figure;
-plot(x_points, y_points, 'b-', 'LineWidth', 2);
-hold on;
-theta = linspace(0, 2*pi, 100);
-plot(radius*cos(theta), radius*sin(theta), 'r--', 'LineWidth', 1); % Circle boundary
-axis equal;
-grid on;
-xlabel('X (mm)');
-ylabel('Y (mm)');
-hold off;
 %% Toilet
 
-% Toilet seat dimensions (inches) converted to meters
-width = 6.5 * 0.0254; % Convert inches to meters
-height = 8 * 0.0254;  % Convert inches to meters
- 
-% Define number of points and spacing
-numPoints = 100;  % Increase for smoother curve
-theta_start = -pi/2; % Start at bottom center
-theta_end = pi/2;   % End at top center
- 
-% Generate the elliptical arc path
-theta = linspace(theta_start, theta_end, numPoints);
-x = (width / 2) * cos(theta);
-y = (height / 2) * sin(theta);
- 
-% Plot the path
-figure;
-plot(x, y, "b-", "LineWidth", 2);
-hold on;
-scatter(x(1), y(1), 100, "r", "filled"); % Start point
-scatter(x(end), y(end), 100, "g", "filled"); % End point
- 
-% Formatting
+y_calibrate = (19)./1000;
+y_offset = 1000.*(0.1241-y_calibrate); % ms
+
+% X = [
+%     -52.294144	281.712402	-82.101479;
+%     78.044258	281.800659	-80.200417;
+%     111.274368	283.13681	7.052958;
+%     72.116989	280.719635	82.634972;
+%     -63.26125	280.51181	74.032768];
+
+% X = [
+% -64.907875	273.841431	73.72673;
+% -5.390048	274.322479	89.957832;
+% 49.91737	273.64682	91.052048;
+% 92.198669	276.04425	75.396767; 
+% 110.963486	278.240509	8.071235;
+% 101.385353	276.411957	-64.228294;
+% 48.728771	275.66925	-88.11245;
+% -13.230884	275.456024	-89.958008;
+% -63.816116	275.741699	-75.401382;
+% ];
+
+X = [-85.544373	303.941681	-68.821014;
+     -46.649567	303.737427	-88.572037;
+    1.246279	304.28595	-86.213211;
+    56.964748	302.445068	-76.774384;
+    99.730019	300.513885	-53.120739;
+    103.712563	304.442871	12.600508;
+    89.341507	300.28241	88.274452;
+    46.915775	304.107208	106.506355;
+    -1.412607	302.49234	104.008133
+    -52.836594	305.015259	102.225662;
+    -91.047272	305.760315	74.205414;
+    ];
+
+X(:,2) = mean(X(:,2));
+X(:,1) = (X(:,1) - mean(X(:,1))) + home_triad_pos(1);
+X(:,3) = (X(:,3) - mean(X(:,3))) + home_triad_pos(3);
+
+% X = flip(X,1);
+
+Fn         = 3;
+Ft_move    = -Fg;
+Ft_scrub   = -Fg - Fn;
+
+plot3(X(:,1),X(:,2),X(:,3))
+axis equal
+
+X(:,2) = X(:,2) + y_offset;
+z_plane = mean(X(:,2));
+
+Q = repmat([0 0 0 1], size(X,1), 1);
+XQ = [X, Q];
+
+% now your waypoint stack needs only one XQ, not two
+retract  = home_triad_pos;   retract(2) = z_plane + 20;
+end_pos  = home_triad_pos;   end_pos(2) = z_plane;
+
+wp = [ home_triad_pos;
+       retract;
+       XQ];
+
+wp = interp_waypoints(wp, 240, "cubic");
+wp = [wp; retract];
+
+
+% force vectors
+Ft = repmat(Ft_scrub, size(wp,1), 1);
+Ft(1:2) = Ft_move;         % only the first two points use move-force
+
+top_idx = find(wp(:,2) >= retract(2),1);
+
+pause_mat = zeros(size(wp,1),1);
+pause_mat(top_idx) = 1;
+
+motor_mat = zeros(size(wp,1),1);
+motor_mat(top_idx:end) = 1;
+
+% Attach force column
+wp = [wp, Ft];
+
+% (optional) save to .mat if export_traj flag is set
+if export_traj
+    save('./inference/scrubbing/toilet_wp.mat',    'wp');
+    save('./inference/scrubbing/toilet_pause.mat', 'pause_mat');
+    save('./inference/scrubbing/toilet_motor.mat', 'motor_mat');
+end
+
+% visualize
+figure(1); clf; hold on;
+plot3(wp(:,1), wp(:,2), wp(:,3), '-o', 'MarkerSize', 2);
 axis equal;
-xlabel("X (m)");
-ylabel("Y (m)");
-title("Curved Path Following the Center of the Toilet Seat");
-grid on;
-legend("Toilet Seat Path", "Start", "End");
+xlabel('X'); ylabel('Y'); zlabel('Z');
 
 %% Helper functions
 
@@ -205,5 +344,5 @@ function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
     end
 
     % Combine interpolated positions and quaternions
-    interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions(:,[2,3,4,1])];
+    interpolatedWaypoints = [interpolatedPositions, interpolatedQuaternions];
 end

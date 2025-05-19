@@ -610,7 +610,7 @@ class aux_bot():
             # Load in motor data
             pos_data = scipy.io.loadmat(self.drive_path + input_path)['wp']
 
-            print(pos_data[0:3,0:3])
+            print(pos_data[0:3,:])
 
             if comp and comp_path != None:
                 print(self.drive_path + comp_path)

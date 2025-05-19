@@ -6,7 +6,7 @@ motor = armMotor();
 
 arm = robotArm(3);
     
-arm.reset_arm()
+% arm.reset_arm()
 
 
 %% Record home position
@@ -49,7 +49,7 @@ end
 set_comp = false;
 
 home = load('./state/home').home;
-delta_l = -100;
+delta_l = -70;
 comp_delta = repmat(delta_l.*[1,5/7,3/7],[1,3]);
 comp_max = home + comp_delta;
 

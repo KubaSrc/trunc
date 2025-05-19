@@ -5,10 +5,10 @@ const unsigned long delayDuration = 5000;  // Maximum ramp-up time
 unsigned long pwm_start = 200;
 unsigned long pwm_end  = 255;
 
-// Hard-coded command value (duration) and flag; positive value means forward direction.
 float commandNum;      // Duration in ms (change as needed)
 float absCommandNum;   // Absolute value (for calculations)
-bool run = false;              // Set to true to run the motor command once
+bool run = false;      // Set to true to run the motor command once
+bool motorState = false;  // Tracks whether the motor is on or off
 
 void setup() {
   pinMode(in1, OUTPUT);
@@ -22,37 +22,51 @@ void setup() {
 }
 
 void loop() {
-
   if (Serial.available()) {
-  commandNum = Serial.parseFloat();
-  absCommandNum = max(commandNum, commandNum * -1);
-  Serial.println(commandNum);
-  Serial.println(absCommandNum);
-  run = true;}
+    commandNum = Serial.parseFloat();
+    Serial.println(commandNum);
+
+    while (Serial.available()) {
+      Serial.read();
+    }
+
+    if (commandNum == 0) { // Toggle motor state if MATLAB sends 0
+      motorState = !motorState;
+      if (motorState) {
+        Serial.println("Motor turned ON");
+        digitalWrite(in1, LOW);
+        digitalWrite(in2, HIGH);
+        analogWrite(pwmPin, pwm_end);
+      } else {
+        Serial.println("Motor turned OFF");
+        digitalWrite(in1, LOW);
+        digitalWrite(in2, LOW);
+        analogWrite(pwmPin, 0);
+      }
+      return;
+    }
+    
+    absCommandNum = abs(commandNum);
+    Serial.println(commandNum);
+    Serial.println(absCommandNum);
+    run = true;
+  }
 
   if (run) {
-    // Determine the ramp duration (the smaller of the command or delayDuration)
     unsigned long maxDuration = min((unsigned long)absCommandNum, delayDuration);
-    // Define how many steps the ramp should have.
-    const int increment = 15;  
+    const int increment = 15;
     unsigned long delayTime = maxDuration / increment;
     unsigned long pwmIncrement = (pwm_end - pwm_start) / increment;
-    // Ensure that the PWM increment is at least 1 to avoid an infinite loop.
-    if (pwmIncrement == 0) {
-      pwmIncrement = 1;
-    }
+    if (pwmIncrement == 0) pwmIncrement = 1;
     long finalDelay = absCommandNum - maxDuration;
-    
+
     Serial.print("finalDelay: ");
     Serial.println(finalDelay);
-
     Serial.print("absCommandNum: ");
     Serial.println(absCommandNum);
 
-    // Check the command sign to set the motor direction.
     if (commandNum > 0) {
       Serial.println("Running forward.");
-      // Forward direction: in1 LOW, in2 HIGH
       int pwmValue = pwm_start;
       digitalWrite(in1, LOW);
       digitalWrite(in2, HIGH);
@@ -60,34 +74,23 @@ void loop() {
         analogWrite(pwmPin, pwmValue);
         delay(delayTime);
       }
-      if (finalDelay > 0) {
-        delay(finalDelay);
-      }
-      // Turn the motor off.
-      digitalWrite(in1, LOW);
-      digitalWrite(in2, LOW);
-      analogWrite(pwmPin, 0);
+      if (finalDelay > 0) delay(finalDelay);
     } 
-    if (commandNum < 0) {
+    else if (commandNum < 0) {
       Serial.println("Running backward.");
-      // Reverse direction: in1 HIGH, in2 LOW
-      int pwmValue = pwm_end - pwm_start;  
+      int pwmValue = pwm_end - pwm_start;
       digitalWrite(in1, HIGH);
       digitalWrite(in2, LOW);
       for (; pwmValue >= 0; pwmValue -= pwmIncrement) {
         analogWrite(pwmPin, pwm_end - pwmValue);
         delay(delayTime);
       }
-      if (finalDelay > 0) {
-        delay(finalDelay);
-      }
-      // Turn the motor off.
-      digitalWrite(in1, LOW);
-      digitalWrite(in2, LOW);
-      analogWrite(pwmPin, 0);
+      if (finalDelay > 0) delay(finalDelay);
     }
-    
-    // Command processing complete; set run to false to prevent re-running.
+
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    analogWrite(pwmPin, 0);
     run = false;
   }
 }

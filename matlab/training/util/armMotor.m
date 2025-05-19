@@ -56,21 +56,15 @@ classdef armMotor
             pause(2); % Allow some time for Arduino to reset and establish a serial connection
         end
         
-        % Method to turn on the relay
-        function turnOnRelay(obj, t)
-            fprintf(obj.s, '%.2f\n', t); % Send character '1' to Arduino for turning on the relay
-        end
         
         % Method to turn off the relay
-        function turnOffRelay(obj)
-            fprintf(obj.s, '%c', '0'); % Send character '0' to Arduino for turning off the relay
+        function toggle(obj)
+            fprintf(obj.s, '%c', '-0'); % Send character '0' to Arduino for turning off the relay
         end
         
         % Method to pulse the motor for a fixed duration
         function pulse(obj, t)
-            obj.turnOnRelay(t);
-            % pause(t);
-            % obj.turnOffRelay();
+            fprintf(obj.s, '%d', t); % Send character '0' to Arduino for turning off the relay
         end
         
         % Destructor method to close serial port when object is deleted
