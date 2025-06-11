@@ -24,89 +24,6 @@ F_arm = (m_arm./1000).*9.81;
 F_tool = ((m_brush + m_a)./1000).*9.81; % Counter rotating brush + Mass A
 Fg = -F_arm - F_tool;
 
-%% Spiral for grill
-
-% Offset between scrubber and motcap
-y_calibrate = 1./1000;
-y_offset    = 1000.*(0.1241 - y_calibrate); % mm
-
-Fn         = 3;
-Ft_move    = -Fg;
-Ft_scrub   = -Fg - Fn;
-
-y_grill = 277-11;
-z_plane   = y_offset + y_grill;
-
-% Parameters
-max_diameter = 150 - 60;       % usable grill diameter (mm)
-num_turns    = 2;              % number of complete revolutions
-nPoints      = 200;            % how many samples along the spiral
-
-% Radii
-r1 = 20;                       % starting radius (mm), e.g. 10
-r2 = (max_diameter/2);         % ending radius (mm), e.g. half your diameter
-
-
-% Precompute
-theta_max = 2*pi * num_turns;
-theta     = linspace(0, theta_max, nPoints).';  % column vector
-
-% Archimedean spiral: r grows linearly from r1→r2
-r = r2 - (r2 - r1) * (theta / theta_max);
-
-% Convert polar→Cartesian
-x = r .* cos(theta);
-y = r .* sin(theta);
-z = zeros(size(x));
-
-% Offset into world frame
-
-X = [ x + home_triad_pos(1), ...
-      z + z_plane, ...
-      y + home_triad_pos(3) ];
-Q = repmat([0,0,0,1], size(X,1), 1);
-XQ = [X, Q];
-
-% now your waypoint stack needs only one XQ, not two
-retract  = home_triad_pos;   retract(2) = z_plane + 10;
-end_pos  = home_triad_pos;   end_pos(2) = z_plane;
-
-
-% Build your waypoint array
-wp = [ home_triad_pos; 
-        retract;
-       XQ;
-       retract];               % then spiral path
-
-% force vectors
-Ft = repmat(Ft_scrub, size(wp,1), 1);
-Ft(1:2) = Ft_move;         % only the first two points use move-force
-
-top_idx = find(wp(:,2) >= retract(2),1);
-
-pause_mat = zeros(size(wp,1),1);
-pause_mat(top_idx) = 1;
-
-motor_mat = zeros(size(wp,1),1);
-motor_mat(top_idx:end) = 1;
-
-% Attach force column
-wp = [wp, Ft];
-
-% (optional) save to .mat if export_traj flag is set
-if export_traj
-    save('./inference/scrubbing/grill_wp.mat',    'wp');
-    save('./inference/scrubbing/grill_pause.mat', 'pause_mat');
-    save('./inference/scrubbing/grill_motor.mat', 'motor_mat');
-end
-
-% visualize
-figure(1); clf; hold on;
-plot3(wp(:,1), wp(:,2), wp(:,3), '-o', 'MarkerSize', 2);
-axis equal;
-xlabel('X'); ylabel('Y'); zlabel('Z');
-title(sprintf('Archimedean spiral, r\\_1=%.1fmm to r\\_2=%.1fmm', r1, r2));
-
 
 %% Circle for the plate
 
@@ -197,53 +114,34 @@ figure(2); clf; hold on;
 
 plot3(wp(:,1),wp(:,2),wp(:,3))
 
+figure(); clf; hold on; axis equal;
+
+off=100;
+plot(wp(off:end,1),wp(off:end,3),lineWidth = 2)
+
+axis off;
+
 %% Toilet
 
-y_calibrate = (22-33)./1000;
-y_offset = 1000.*(0.1241-y_calibrate); % mm
+y_calibrate = (19)./1000;
+y_offset = 1000.*(0.1241-y_calibrate); % ms
 
-% X = [
-%     -52.294144	281.712402	-82.101479;
-%     78.044258	281.800659	-80.200417;
-%     111.274368	283.13681	7.052958;
-%     72.116989	280.719635	82.634972;
-%     -63.26125	280.51181	74.032768];
+X = [-93.336327	310.849335	-81.249062;
+    -29.047598	308.981354	-97.220901;
+    34.642471	308.572144	-87.760704;
+    79.538498	307.162598	-62.591442;
+    73.038528	308.108551	76.016869;
+    32.861343	306.402985	93.484833;
+    -34.274734	307.638641	101.300362;
+    -93.137741	304.472473	81.804001];
 
-X = [
--64.907875	273.841431	73.72673;
--5.390048	274.322479	89.957832;
-49.91737	273.64682	91.052048;
-92.198669	276.04425	75.396767; 
-110.963486	278.240509	8.071235;
-101.385353	276.411957	-64.228294;
-48.728771	275.66925	-88.11245;
--13.230884	275.456024	-89.958008;
--63.816116	275.741699	-75.401382;
-];
-%%
+X(:,2) = mean(X(:,2));
+X(:,1) = (X(:,1) - mean(X(:,1))) + home_triad_pos(1);
+X(:,3) = (X(:,3) - mean(X(:,3))) + home_triad_pos(3);
 
-X = [-85.544373	303.941681	-68.821014;
-     -46.649567	303.737427	-88.572037;
-    1.246279	304.28595	-86.213211;
-    56.964748	302.445068	-76.774384;
-    99.730019	300.513885	-53.120739;
-    103.712563	304.442871	12.600508;
-    89.341507	300.28241	88.274452;
-    -52.836594	305.015259	102.225662;
-    -91.047272	305.760315	74.205414;
-   
-    -1.412607	302.49234	104.008133];
+% X = flip(X,1);
 
-plot3(X(:,1),X(:,2),X(:,3))
-axis equal 
-xlabel("x")
-ylabel("y")
-zlabel("z")
-
-%%
-X = flip(X,1);
-
-Fn         = 3;
+Fn         = 4.5;
 Ft_move    = -Fg;
 Ft_scrub   = -Fg - Fn;
 
@@ -257,15 +155,16 @@ Q = repmat([0 0 0 1], size(X,1), 1);
 XQ = [X, Q];
 
 % now your waypoint stack needs only one XQ, not two
-retract  = home_triad_pos;   retract(2) = z_plane + 20;
+retract  = home_triad_pos;   retract(2) = z_plane + 10;
 end_pos  = home_triad_pos;   end_pos(2) = z_plane;
+start_pos = XQ(1,:)+[0,15,0,0,0,0,0];
 
-wp = [ home_triad_pos;
-       retract;
-       XQ];
+wp0 = [retract;
+    start_pos];
 
-wp = interp_waypoints(wp, 240, "cubic");
-wp = [wp; retract];
+wp0 = interp_waypoints(wp0, 15, "cubic");
+wp1 = interp_waypoints(XQ,120,"cubic");
+wp = [home_triad_pos;wp0;wp1; retract];
 
 
 % force vectors
@@ -296,7 +195,359 @@ plot3(wp(:,1), wp(:,2), wp(:,3), '-o', 'MarkerSize', 2);
 axis equal;
 xlabel('X'); ylabel('Y'); zlabel('Z');
 
+
+%% Toilet “bubble‐C” perimeter‐scrub trajectory
+% Now with independently controlled inner and outer thicknesses
+
+% — calibration & base curve setup —
+y_calibrate = 19/1000;
+y_offset    = 1000*(0.1241 - y_calibrate);  % mm
+
+X = [ ...
+   -93.336327 310.849335 -81.249062;
+   -29.047598 308.981354 -97.220901;
+    34.642471 308.572144 -87.760704;
+    79.538498 307.162598 -58.591442;
+    73.038528 308.108551  72.016869;
+    32.861343 306.402985  100.484833;
+   -34.274734 307.638641 101.300362;
+   -93.137741 304.472473  81.804001;
+   -120.137741 304.472473  70.804001;];
+
+% Flatten Y, recenter around home_triad_pos, then apply Y offset
+X(:,2) = mean(X(:,2));
+X(:,1) = (X(:,1)-mean(X(:,1))) + home_triad_pos(1);
+X(:,3) = (X(:,3)-mean(X(:,3))) + home_triad_pos(3);
+X(:,2) = X(:,2) + y_offset;
+z_plane = mean(X(:,2));
+
+% Identity quaternion
+Q_id = [0 0 0 1];
+
+% — lead‐in (unchanged) —
+retract   = home_triad_pos;   retract(2) = z_plane + 10;
+start_pos = [ X(1,1), z_plane+15, X(1,3), Q_id ];
+wp0 = interp_waypoints([retract; start_pos], 15, "linear");
+
+% — “bubble‐C” offset pass with separate inner/outer distances —
+outerOffset = 27.5;   % mm thickness on the outside edge
+innerOffset = 16;    % mm thickness on the inside edge
+
+% 1) extract your open 2D [X Z] polyline
+orig2D = X(:,[1 3]);
+
+% 2) compute outer (+) and inner (–) offsets
+outer2D = offsetCurveOpen(orig2D, +outerOffset);
+inner2D = offsetCurveOpen(orig2D, -innerOffset);
+
+% 3) stitch: go forward along outer, then back along inner
+combo2D = [ outer2D;
+            flipud(inner2D) ];
+
+% 4) rebuild 3D + quaternions, matching sizes
+Xcombo  = [ combo2D(:,1), repmat(z_plane, size(combo2D,1),1), combo2D(:,2) ];
+Qcombo  = repmat(Q_id, size(Xcombo,1), 1);
+XQcombo = [ Xcombo, Qcombo ];
+
+% 5) smooth the “bubble‐C” path
+wp1 = interp_waypoints(XQcombo, 120, "linear");
+
+% — final trajectory assembly —
+wp = [ home_triad_pos;
+       wp0;
+       wp1;
+       retract ];
+
+% Force vectors (uses existing Fg in workspace)
+Fn       = 3;
+Ft_move  = -Fg;
+Ft_scrub = -Fg - Fn;
+Ft = repmat(Ft_scrub, size(wp,1), 1);
+Ft(1:2) = Ft_move;
+
+% Pause & motor flags
+top_idx   = find(wp(:,2) >= retract(2), 1);
+pause_mat = zeros(size(wp,1),1);    pause_mat(top_idx)   = 1;
+motor_mat = zeros(size(wp,1),1);    motor_mat(top_idx:end) = 1;
+
+% Attach force column
+wp = [wp, Ft];
+
+% Optional export
+if export_traj
+    save('./inference/scrubbing/toilet_wp.mat',    'wp');
+    save('./inference/scrubbing/toilet_pause.mat','pause_mat');
+    save('./inference/scrubbing/toilet_motor.mat','motor_mat');
+end
+
+% Visualization
+figure(1); clf; hold on;
+plot3(wp(:,1), wp(:,2), wp(:,3), '-o', 'MarkerSize', 2);
+axis equal; xlabel('X'); ylabel('Y'); zlabel('Z');
+plot3(X(:,1),X(:,2),X(:,3))
+
+%% 4) GRILL SURFACE SPOT‐CLEAN PASS (RECTILINEAR GRID, ONE SPOT AT A TIME)
+
+% home_triad_pos = [x, y, z, qx, qy, qz, qw]
+home_pos  = home_triad_pos(1:3);      % [X Y Z]
+home_quat = home_triad_pos(4:7);      % [qx qy qz qw]
+
+% DEFINE F_arm and F_tool
+F_arm   = (m_arm   ./ 1000) .* 9.81;
+F_tool  = (m_brush  ./ 1000) .* 9.81;  % Counter rotating brush mass
+Fg      = -F_arm - F_tool;
+
+Fn       = 2.5;
+Ft_move  = -Fg;
+Ft_scrub = -Fg - Fn;
+
+y_calibrate    = 16/1000;
+y_offset       = 1000 * (0.1241 - y_calibrate);  % mm
+y_grill        = 284;
+z_plane_grill  = y_grill + y_offset;
+spot_pause = 3.5;
+
+% HOP HEIGHT: 30 mm above grill surface
+retract_grill = home_pos;
+retract_grill(2) = z_plane_grill + 30;   % Y = surface + 30
+
+press_grill = home_pos;
+press_grill(2) = z_plane_grill;          % Y = surface
+
+% GRID PARAMETERS
+r_grill      = 100;   % circle radius (mm)
+grid_step    = 25;    % spacing between scan rows (mm)
+spot_step    = grid_step;  % spacing between spots along each row
+x_edge_offset = 0;   % mm inward from circle edge on X‐axis
+z_edge_offset = 0;   % mm inward from circle edge on Z‐axis
+hop_height = 12;
+
+% Effective Z range so we don't hit circle extremes
+maxZ = r_grill - z_edge_offset;
+z_vals = -maxZ : grid_step : +maxZ;
+numRows = numel(z_vals);
+
+% BUILD RAW SCRUB POSITIONS (Nx3) – SPOT BY SPOT
+raw_pos = zeros(0,3);
+
+% 1) Start at home, then retract above grill
+raw_pos = [ raw_pos; retract_grill ];
+
+prev_hop = retract_grill;  % current location at hop height
+
+for k = 1:numRows
+    z = z_vals(k);
+    % Full half‐chord at this Z
+    x_range_full = sqrt(r_grill^2 - z^2);
+    x_eff = max(0, x_range_full - x_edge_offset);
+    
+    % Compute spot X positions from -x_eff to +x_eff in steps of spot_step
+    if x_eff == 0
+        x_spots = 0;
+    else
+        % ensure endpoints ±x_eff are included
+        x_spots_pos = -x_eff : spot_step : +x_eff;
+        if x_spots_pos(end) < x_eff
+            x_spots_pos = [x_spots_pos, x_eff];
+        end
+        x_spots = x_spots_pos;
+    end
+    
+    % Alternate scan direction per row
+    if mod(k,2) == 0
+        x_spots = flip(x_spots);
+    end
+    
+    for i = 1:numel(x_spots)
+        Xs = x_spots(i);
+        % 2) Move at hop height to this spot (from prev_hop)
+        hop_move = [ Xs + home_pos(1), z_plane_grill + hop_height, z + home_pos(3) ];
+        raw_pos(end+1, :) = hop_move;
+        
+        % 3) Descend to surface at the spot
+        descend_spot = [ Xs + home_pos(1), z_plane_grill, z + home_pos(3) ];
+        raw_pos(end+1, :) = descend_spot;
+        
+        % 4) Optionally dwell/spot‐clean here (pause logic will handle timing)
+        
+        % 5) Ascend back to hop height
+        ascend_spot = [ Xs + home_pos(1), z_plane_grill + hop_height, z + home_pos(3) ];
+        raw_pos(end+1, :) = ascend_spot;
+        
+        prev_hop = ascend_spot;  % update current hop location
+    end
+    
+    % 6) After finishing this row, if not last row, move hop to next row's first spot
+    if k < numRows
+        z_next = z_vals(k+1);
+        x_range_full_next = sqrt(r_grill^2 - z_next^2);
+        x_next_eff = max(0, x_range_full_next - x_edge_offset);
+        
+        if x_next_eff == 0
+            X_next = 0;
+        else
+            x_line_next = [-x_next_eff, +x_next_eff];
+            if mod(k+1,2) == 1
+                X_next = x_line_next(1);
+            else
+                X_next = x_line_next(2);
+            end
+        end
+        
+        next_hop = [ X_next + home_pos(1), z_plane_grill + hop_height, z_next + home_pos(3) ];
+        raw_pos(end+1, :) = next_hop;
+        prev_hop = next_hop;
+    end
+end
+
+% 7) After final spot, retract back up (already at hop height)
+raw_pos(end+1, :) = retract_grill;
+
+% REMOVE ANY CONSECUTIVE DUPLICATES IN raw_pos
+dpos = diff(raw_pos,1,1);
+dupRows = all(abs(dpos) < 1e-9, 2);
+raw_pos(dupRows, :) = [];
+
+% CONVERT RAW POSITIONS TO WAYPOINTS WITH QUATERNIONS
+numPts       = size(raw_pos, 1);
+Q_mat        = repmat(home_quat, numPts, 1);
+XQ_grill_raw = [ raw_pos, Q_mat ];   % Nx7
+
+wp_scrub = XQ_grill_raw;
+
+% ASSEMBLE FINAL wp_grill: include retract before & after
+retract_wp = [ retract_grill, home_quat ];  % 1×7
+wp_grill   = [ home_triad_pos;                                 % 1×7 (home)
+               retract_wp;                                     % 1×7 (above grill)             % lift from first spot (hop)
+               wp_scrub;                                        % 200×7 (spot sequence)            % lift after last spot
+               retract_wp ];                                    % 1×7 (above grill again)
+
+% FORCE VECTOR (for full wp_grill)
+Ft_grill = repmat(Ft_scrub, size(wp_grill,1), 1);
+top_idx_g = find(wp_grill(:,2) >= retract_grill(2), 1);
+Ft_grill(1:top_idx_g) = Ft_move;
+
+% PAUSE & MOTOR FLAGS
+pause_mat = zeros(size(wp_grill,1),1);
+pause_mat(top_idx_g) = 1;
+pause_mat(find(wp_grill(:,2)==z_plane_grill)+1)=spot_pause;
+
+
+motor_mat = zeros(size(wp_grill,1),1);
+motor_mat(top_idx_g:end) = 1;
+
+% ATTACH FORCE COLUMN → final wp (Nx8)
+wp = [ wp_grill, Ft_grill ];
+
+% SAVE IF REQUESTED
+if export_traj
+    save('./inference/scrubbing/grill_wp.mat',    'wp');
+    save('./inference/scrubbing/grill_pause.mat','pause_mat');
+    save('./inference/scrubbing/grill_motor.mat','motor_mat');
+end
+
+% VISUALIZATION
+figure(40); clf; hold on;
+plot3(raw_pos(:,1), raw_pos(:,2), raw_pos(:,3), '-o', 'MarkerSize', 2);
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Raw Grill Spot‐Clean Sequence (Unsmoothed)');
+axis equal; grid on;
+
+figure(41); clf; hold on;
+plot3(wp(:,1), wp(:,2), wp(:,3), '-o', 'MarkerSize', 2);
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Smoothed Grill Spot‐Clean Sequence');
+axis equal; grid on;
+
+
+%% Brush comparison
+
+% Offset between scrubber and motcap
+y_calibrate = 19./1000;
+y_offset = 1000.*(0.1241-y_calibrate); % mm
+
+Fn = 3;
+Ft_move = -Fg;
+Ft_scrub = -Fg - Fn;
+
+y_plate = 256;
+
+nPerLoop = 20;        % points around each circle
+loops     = 2;        % number of loops
+r         = 70;       % radius
+z_plane   = y_offset + y_plate;
+
+% make 2 loops worth of angles, then drop the last point so there’s no duplicate
+theta = linspace(0, 2*pi*loops, nPerLoop*loops + 1).';
+theta(end) = [];
+
+% circle coordinates
+x = r .* cos(theta);
+y = r .* sin(theta);
+z = zeros(size(theta));
+
+% build your XYZ+Q
+X = [ x + home_triad_pos(1), ...
+      z + z_plane, ...
+      y + home_triad_pos(3) ];
+Q = repmat([0 0 0 1], size(X,1), 1);
+XQ = [X, Q];
+
+% now your waypoint stack needs only one XQ, not two
+retract  = home_triad_pos;   retract(2) = z_plane + 30;
+end_pos  = home_triad_pos;   end_pos(2) = z_plane;
+
+wp = [ home_triad_pos
+       retract
+       XQ
+       end_pos ];
+
+% ensure all quaternions are [0 0 0 1]
+wp(:,4:7) = repmat([0 0 0 1], size(wp,1), 1);
+
+% interpolate (if you still want 120 points TOTAL, or bump to 240 
+% to keep the same per-loop resolution)
+wp = interp_waypoints(wp, 240, "cubic");
+wp = [wp; retract];
+
+
+Ft = repmat(Ft_scrub,[size(wp,1),1]);
+
+top_idx = find(wp(:,2) >= retract(2),1);
+mid_idx = find(sum((wp(:,1:3)-end_pos(1:3)).^2,2)<1e-9,1);
+
+Ft(1:top_idx) = Ft_move;
+
+pause_mat = zeros([size(wp,1),1]);
+pause_mat(top_idx) = 1;
+pause_mat(mid_idx) = 10;
+
+motor_mat = zeros([size(wp,1),1]);
+motor_mat(top_idx:end) = 1;
+
+wp = [wp,Ft];
+
+
+
 %% Helper functions
+
+function Poff = offsetCurveOpen(P, d)
+    % P:  Nx2 [x z] polyline (open)
+    % d:  offset distance (+ outward, – inward)
+    N = size(P,1);
+    % tangents (forward/back diffs)
+    T = zeros(N,2);
+    T(1,:)   = P(2,:)   - P(1,:);
+    for i=2:N-1
+        T(i,:) = P(i+1,:) - P(i-1,:);
+    end
+    T(N,:)   = P(N,:)   - P(N-1,:);
+    T = T ./ vecnorm(T,2,2);
+    % outward normals = +90° rotation
+    Nvec = [ T(:,2), -T(:,1) ];
+    % offset
+    Poff = P + d * Nvec;
+end
 
 function interpolatedWaypoints = interp_waypoints(waypoints, totalPoints, mode)
     % Extract positions and quaternions

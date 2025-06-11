@@ -3,7 +3,7 @@ addpath('./util')
 
 % Test variables
 
-pause_length = 0.05; 
+pause_length = 0.1; 
 pulse_length = 0;
 noise_samples = 15;
 model_type = 'DNN';
@@ -13,7 +13,7 @@ demo = false;
 active_pause = false;
 active_motor = false;
 
-surface = 'comparison';
+surface = 'grill';
 inputs_path = ['./inference/scrubbing/',surface,'_inputs.mat']; % Motor positions from model
 pause_path = ['./inference/scrubbing/',surface,'_pause.mat']; % Motor positions from model
 motor_path = ['./inference/scrubbing/',surface,'_motor.mat']; % Motor positions from model
@@ -71,4 +71,4 @@ for p = 1:num_points
 
 end
 
-% motor.toggle();
+motor.toggle();

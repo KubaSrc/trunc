@@ -1,12 +1,15 @@
 close all; clear all; clc;
 warning('off', 'all');
 
+addpath('./training/util/')
+
+
 home_pos = load('./training/state/home_triad_measured.mat').pos;
 old_home = load('./training/state/home_measured.mat').pos;
 
 map = brewermap(9,'Set1');
 
-export_fig = true;
+export_fig = false;
 
 lw = 2;
 ms = 8;
@@ -177,6 +180,46 @@ for i = 1:length(list_exp_DNN)
     measured_quat = remove_twist(measured_quat);
     theta = 2 * acos(abs(dot(ref_quat, measured_quat,2)));
     circle_orientation_error = rad2deg(theta);
+
+    % ——— Compute 3-D position & orientation error metrics ———
+    
+    % 1) Build actual vs. reference in mm
+    if i ==1
+        actual = [ ...
+            (T_DNN.x_end_avg-T_DNN.x_end_avg(1))*1000, ...
+             -(T_DNN.z_end_avg-T_DNN.z_end_avg(1)) * 1000, ...
+             (T_DNN.y_end_avg-T_DNN.y_end_avg(1)) * 1000];
+    else 
+        actual = [ ...
+            (T_DNN.x_end_avg-T_DNN.x_end_avg(1))*1000, ...
+             (T_DNN.y_end_avg-T_DNN.y_end_avg(1)) * 1000, ...
+             (T_DNN.z_end_avg-T_DNN.z_end_avg(1)) * 1000];
+    end 
+    
+    ref    = [ ...
+         wp_DNN(:,1)-wp_DNN(1,1), ...
+         wp_DNN(:,2)-wp_DNN(1,2), ...
+         wp_DNN(:,3)-wp_DNN(1,3)];   % adjust col if needed
+
+    % 2) Per‐sample 3D error norm
+    err_vec    = actual - ref;            % N×3
+    err_3d_mm  = sqrt( sum(err_vec.^2, 2) );
+
+    % 3) Orientation error (you already have this in degrees)
+    err_ori_deg = circle_orientation_error;
+
+    % 4) Summary statistics
+    mean_pos = mean(err_3d_mm);  std_pos = std(err_3d_mm);  max_pos = max(err_3d_mm);
+    mean_ori = mean(err_ori_deg); std_ori = std(err_ori_deg); max_ori = max(err_ori_deg);
+
+    % 5) Print to command window
+    modelNames = {'Old Model','New Model'};
+    modelName  = modelNames{i};
+    fprintf('\n——— %s ———\n', modelName);
+    fprintf('3-D Position error (mm):   mean = %.2f,   std = %.2f,   max = %.2f\n', ...
+            mean_pos, std_pos, max_pos);
+    fprintf('Orientation error (°):      mean = %.2f,   std = %.2f,   max = %.2f\n', ...
+            mean_ori, std_ori, max_ori);
     
     fig_quat = figure; 
     clf(fig_quat);
